@@ -7,6 +7,8 @@ module.exports =
 class LessCache
   constructor: ({@importPaths}={}) ->
 
+  setImportPaths: (@importPaths) ->
+
   readFileSync: (filePath) ->
     options = filename: filePath, syncImport: true, paths: @importPaths
     parser = new Parser(options)

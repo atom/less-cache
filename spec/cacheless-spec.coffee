@@ -96,3 +96,16 @@ describe "LessCache", ->
         }
 
       """
+
+    it "reflect changes to the import paths array", ->
+      cache.setImportPaths([join(fixturesDir, 'imports-2'), join(fixturesDir, 'imports-1')])
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 30;
+          d: 4;
+        }
+
+      """
