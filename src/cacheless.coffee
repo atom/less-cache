@@ -2,7 +2,6 @@ crypto = require 'crypto'
 fs = require 'fs'
 
 {Parser} = require 'less'
-lessTree = require 'less/lib/less/tree'
 
 module.exports =
 class LessCache
