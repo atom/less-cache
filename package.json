@@ -9,7 +9,9 @@
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "less": "~1.4.2"
+    "less": "~1.4.2",
+    "tmp": "0.0.21",
+    "fstream": "~0.1.24"
   },
   "devDependencies": {
     "jasmine-focused": "~0.12.0"
