@@ -4,13 +4,14 @@ fs = require 'fs'
 tmp = require 'tmp'
 fstream = require 'fstream'
 
-cacheless = require '../src/cacheless'
+LessCache = require '../src/cacheless'
 
-describe "cacheless", ->
-  [fixturesDir] = []
+describe "LessCache", ->
+  [cache, fixturesDir] = []
 
   beforeEach ->
     fixturesDir = null
+    cache = new LessCache()
     tmp.dir (error, tempDir) ->
       reader = fstream.Reader(join(__dirname, 'fixtures'))
       reader.on 'end', -> fixturesDir = tempDir
@@ -18,11 +19,11 @@ describe "cacheless", ->
 
     waitsFor -> fixturesDir?
 
-  describe ".readFileSync(filePath)", ->
+  describe "::readFileSync(filePath)", ->
     [css] = []
 
     beforeEach ->
-      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
 
     it "returns the compiled CSS for a given LESS file path", ->
       expect(css).toBe """
@@ -40,7 +41,7 @@ describe "cacheless", ->
 
     it "reflects changes to the file being read", ->
       fs.writeFileSync(join(fixturesDir, 'imports.less'), 'b { display: block; }')
-      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         b {
           display: block;
@@ -50,7 +51,7 @@ describe "cacheless", ->
 
     it "reflects changes to files imported by the file being read", ->
       fs.writeFileSync(join(fixturesDir, 'b.less'), 'b { display: block; }')
-      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         div {
           background-color: #0f0;
