@@ -11,20 +11,53 @@ class LessCache
 
   setImportPaths: (@importPaths) ->
 
+  observeImportedFilePaths: (callback) ->
+    importedPaths = []
+    originalFsReadFileSync = fs.readFileSync
+    fs.readFileSync = (filePath, args...) =>
+      content = originalFsReadFileSync(filePath, args...)
+      importedPaths.push({path: filePath, digest: @digestForContent(content)})
+      content
+
+    callback()
+
+    fs.readFileSync = originalFsReadFileSync
+    importedPaths
+
+  digestForPath: (filePath) ->
+    @digestForContent(fs.readFileSync(filePath))
+
+  digestForContent: (content) ->
+    crypto.createHash('SHA1').update(content).digest('hex')
+
+  getCachedCss: (filePath, digest) ->
+    cacheEntry = @cssCache[filePath]
+    return unless cacheEntry?
+    return unless digest is cacheEntry.digest
+
+    for {path, digest} in cacheEntry.imports
+      try
+        return if @digestForPath(path) isnt digest
+      catch error
+        return
+
+    cacheEntry.css
+
   readFileSync: (filePath) ->
     lessContent = fs.readFileSync(filePath, 'utf8')
     digest = crypto.createHash('SHA1').update(lessContent).digest('hex')
-    cacheEntry = @cssCache[filePath] ? {}
-    if cacheEntry.digest is digest
-      cacheEntry.css
-    else
-      cssContent = null
+    cssContent = @getCachedCss(filePath, digest)
+
+    unless cssContent?
       options = filename: filePath, syncImport: true, paths: @importPaths
       parser = new Parser(options)
-      parser.parse lessContent, (error, tree) =>
-        if error?
-          throw error
-        else
-          cssContent = tree.toCSS()
-          @cssCache[filePath] = {digest, css: cssContent}
-      cssContent
+      importedPaths = @observeImportedFilePaths =>
+        parser.parse lessContent, (error, tree) =>
+          if error?
+            throw error
+          else
+            cssContent = tree.toCSS()
+
+      @cssCache[filePath] = {digest, css: cssContent, imports: importedPaths}
+
+    cssContent
