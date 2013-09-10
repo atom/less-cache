@@ -1,3 +1,4 @@
+fs = require 'fs'
 {join} = require 'path'
 
 tmp = require 'tmp'
@@ -17,8 +18,12 @@ describe "cacheless", ->
     waitsFor -> fixturesDir?
 
   describe ".readFileSync(filePath)", ->
-    it "returns the compiled CSS for a given LESS file path", ->
+    [css] = []
+
+    beforeEach ->
       css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+
+    it "returns the compiled CSS for a given LESS file path", ->
       expect(css).toBe """
         div {
           background-color: #0f0;
@@ -28,6 +33,16 @@ describe "cacheless", ->
         }
         body {
           color: #f00;
+        }
+
+      """
+
+    it "reflects changes to the file being read", ->
+      fs.writeFileSync(join(fixturesDir, 'imports.less'), 'b { display: block; }')
+      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        b {
+          display: block;
         }
 
       """
