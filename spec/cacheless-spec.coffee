@@ -27,14 +27,10 @@ describe "LessCache", ->
 
     it "returns the compiled CSS for a given LESS file path", ->
       expect(css).toBe """
-        div {
-          background-color: #0f0;
-        }
-        p {
-          background-color: #00f;
-        }
         body {
-          color: #f00;
+          font-family: 'Arial';
+          display: block;
+          border-width: 0;
         }
 
       """
@@ -50,17 +46,13 @@ describe "LessCache", ->
       """
 
     it "reflects changes to files imported by the file being read", ->
-      fs.writeFileSync(join(fixturesDir, 'b.less'), 'b { display: block; }')
+      fs.writeFileSync(join(fixturesDir, 'b.less'), '@b-display: inline;')
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
-        div {
-          background-color: #0f0;
-        }
-        b {
-          display: block;
-        }
         body {
-          color: #f00;
+          font-family: 'Arial';
+          display: inline;
+          border-width: 0;
         }
 
       """
