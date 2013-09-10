@@ -5,7 +5,7 @@ lessTree = require 'less/lib/less/tree'
 
 module.exports =
 class LessCache
-  constructor: (@importPaths=[]) ->
+  constructor: ({@importPaths}={}) ->
 
   readFileSync: (filePath) ->
     options = filename: filePath, syncImport: true, paths: @importPaths

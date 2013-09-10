@@ -11,10 +11,11 @@ describe "LessCache", ->
 
   beforeEach ->
     fixturesDir = null
-    cache = new LessCache()
     tmp.dir (error, tempDir) ->
       reader = fstream.Reader(join(__dirname, 'fixtures'))
-      reader.on 'end', -> fixturesDir = tempDir
+      reader.on 'end', ->
+        fixturesDir = tempDir
+        cache = new LessCache(importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
       reader.pipe(fstream.Writer(tempDir))
 
     waitsFor -> fixturesDir?
@@ -28,31 +29,70 @@ describe "LessCache", ->
     it "returns the compiled CSS for a given LESS file path", ->
       expect(css).toBe """
         body {
-          font-family: 'Arial';
-          display: block;
-          border-width: 0;
+          a: 1;
+          b: 2;
+          c: 3;
+          d: 4;
         }
 
       """
 
     it "reflects changes to the file being read", ->
-      fs.writeFileSync(join(fixturesDir, 'imports.less'), 'b { display: block; }')
+      fs.writeFileSync(join(fixturesDir, 'imports.less'), 'body { display: block; }')
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
-        b {
+        body {
           display: block;
         }
 
       """
 
     it "reflects changes to files imported by the file being read", ->
-      fs.writeFileSync(join(fixturesDir, 'b.less'), '@b-display: inline;')
+      fs.writeFileSync(join(fixturesDir, 'b.less'), '@b: 20;')
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         body {
-          font-family: 'Arial';
-          display: inline;
-          border-width: 0;
+          a: 1;
+          b: 20;
+          c: 3;
+          d: 4;
+        }
+
+      """
+
+    it "reflects changes to files on the import path", ->
+      fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 40;')
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 3;
+          d: 40;
+        }
+
+      """
+
+      fs.unlinkSync(join(fixturesDir, 'imports-1', 'c.less'))
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 30;
+          d: 40;
+        }
+
+      """
+
+      fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 400;')
+      css = cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 30;
+          d: 400;
         }
 
       """
