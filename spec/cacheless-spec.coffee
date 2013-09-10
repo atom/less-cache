@@ -6,19 +6,19 @@ fstream = require 'fstream'
 cacheless = require '../src/cacheless'
 
 describe "cacheless", ->
-  [directoryPath] = []
+  [fixturesDir] = []
 
   beforeEach ->
-    tmp.dir (error, tempDirPath) ->
+    tmp.dir (error, tempDir) ->
       reader = fstream.Reader(join(__dirname, 'fixtures'))
-      reader.on 'end', -> directoryPath = tempDirPath
-      reader.pipe(fstream.Writer(tempDirPath))
+      reader.on 'end', -> fixturesDir = tempDir
+      reader.pipe(fstream.Writer(tempDir))
 
-    waitsFor -> directoryPath?
+    waitsFor -> fixturesDir?
 
   describe ".readFileSync(filePath)", ->
     it "returns the compiled CSS for a given LESS file path", ->
-      css = cacheless.readFileSync(join(directoryPath, 'imports.less'))
+      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         div {
           background-color: #0f0;
