@@ -1,0 +1,17 @@
+{
+  "name": "cacheless",
+  "version": "0.0.0",
+  "description": "",
+  "main": "./lib/cacheless",
+  "scripts": {
+    "test": "jasmine-focused --captureExceptions --coffee spec"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "less": "~1.4.2"
+  },
+  "devDependencies": {
+    "jasmine-focused": "~0.12.0"
+  }
+}
