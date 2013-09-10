@@ -10,6 +10,7 @@ describe "cacheless", ->
   [fixturesDir] = []
 
   beforeEach ->
+    fixturesDir = null
     tmp.dir (error, tempDir) ->
       reader = fstream.Reader(join(__dirname, 'fixtures'))
       reader.on 'end', -> fixturesDir = tempDir
@@ -43,6 +44,22 @@ describe "cacheless", ->
       expect(css).toBe """
         b {
           display: block;
+        }
+
+      """
+
+    it "reflects changes to files imported by the file being read", ->
+      fs.writeFileSync(join(fixturesDir, 'b.less'), 'b { display: block; }')
+      css = cacheless.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(css).toBe """
+        div {
+          background-color: #0f0;
+        }
+        b {
+          display: block;
+        }
+        body {
+          color: #f00;
         }
 
       """
