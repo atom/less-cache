@@ -18,9 +18,11 @@ class LessCache
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
       content
 
-    callback()
+    try
+      callback()
+    finally
+      fs.readFileSync = originalFsReadFileSync
 
-    fs.readFileSync = originalFsReadFileSync
     importedPaths
 
   digestForPath: (filePath) ->
