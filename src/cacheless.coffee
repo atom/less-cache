@@ -5,10 +5,11 @@ fs = require 'fs'
 
 module.exports =
 class LessCache
-  constructor: ({@importPaths}={}) ->
-    @cssCache = {}
+  constructor: ({importPaths}={}) ->
+    @setImportPaths(importPaths)
 
   setImportPaths: (@importPaths) ->
+    @cssCache = {}
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
