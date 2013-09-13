@@ -65,7 +65,7 @@ class LessCache
 
   getCachedCss: (filePath, digest) ->
     try
-      cacheEntry = JSON.parse(fs.readFileSync(@getCachePath(filePath)))
+      cacheEntry = @readJson(@getCachePath(filePath))
     catch error
       return
 
