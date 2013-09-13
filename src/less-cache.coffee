@@ -53,7 +53,6 @@ class LessCache
 
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
 
-
   digestForPath: (filePath) ->
     @digestForContent(fs.readFileSync(filePath))
 
