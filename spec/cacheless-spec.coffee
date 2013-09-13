@@ -40,6 +40,19 @@ describe "LessCache", ->
 
       """
 
+    it "returns the cached CSS for a given LESS file path", ->
+      spyOn(cache, 'parseLess').andCallThrough()
+      expect(cache.readFileSync(join(fixturesDir, 'imports.less'))).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 3;
+          d: 4;
+        }
+
+      """
+      expect(cache.parseLess.callCount).toBe 0
+
     it "reflects changes to the file being read", ->
       fs.writeFileSync(join(fixturesDir, 'imports.less'), 'body { display: block; }')
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))

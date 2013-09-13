@@ -61,21 +61,26 @@ class LessCache
     mkdir(dirname(cachePath))
     fs.writeFileSync(cachePath, JSON.stringify({digest, css, imports, version: cacheVersion}))
 
+  parseLess: (filePath, less) ->
+    css = null
+    options = filename: filePath, syncImport: true, paths: @importPaths
+    parser = new Parser(options)
+    imports = @observeImportedFilePaths =>
+      parser.parse less, (error, tree) =>
+        if error?
+          throw error
+        else
+          css = tree.toCSS()
+    {imports, css}
+
+
   readFileSync: (filePath) ->
-    lessContent = fs.readFileSync(filePath, 'utf8')
-    digest = crypto.createHash('SHA1').update(lessContent).digest('hex')
-    cssContent = @getCachedCss(filePath, digest)
+    less = fs.readFileSync(filePath, 'utf8')
+    digest = @digestForContent(less)
+    css = @getCachedCss(filePath, digest)
 
-    unless cssContent?
-      options = filename: filePath, syncImport: true, paths: @importPaths
-      parser = new Parser(options)
-      importedPaths = @observeImportedFilePaths =>
-        parser.parse lessContent, (error, tree) =>
-          if error?
-            throw error
-          else
-            cssContent = tree.toCSS()
+    unless css?
+      {imports, css} = @parseLess(filePath, less)
+      @putCachedCss(filePath, digest, css, imports)
 
-      @putCachedCss(filePath, digest, cssContent, importedPaths)
-
-    cssContent
+    css
