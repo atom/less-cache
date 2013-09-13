@@ -73,12 +73,10 @@ class LessCache
           css = tree.toCSS()
     {imports, css}
 
-
   readFileSync: (filePath) ->
     less = fs.readFileSync(filePath, 'utf8')
     digest = @digestForContent(less)
     css = @getCachedCss(filePath, digest)
-
     unless css?
       {imports, css} = @parseLess(filePath, less)
       @putCachedCss(filePath, digest, css, imports)
