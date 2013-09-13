@@ -1,3 +1,3 @@
 # Less Cache
 
-Caches the compiled `.less` files as `.css` in leveldb.
+Caches the compiled `.less` files as `.css`.
