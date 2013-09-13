@@ -130,3 +130,9 @@ describe "LessCache", ->
         }
 
       """
+
+    it "reuses cached CSS across cache instances", ->
+      cache2 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
+      spyOn(cache2, 'parseLess').andCallThrough()
+      cache2.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(cache2.parseLess.callCount).toBe 0

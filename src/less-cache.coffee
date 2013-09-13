@@ -2,6 +2,7 @@ crypto = require 'crypto'
 fs = require 'fs'
 {basename, dirname, extname, join} = require 'path'
 
+_ = require 'underscore'
 {Parser} = require 'less'
 mkdir = require('mkdirp').sync
 rm = require('rimraf').sync
@@ -12,7 +13,14 @@ cacheVersion = 1
 module.exports =
 class LessCache
   constructor: ({@cacheDir, importPaths}={}) ->
+    try
+      {@importedFiles} = @readJson(join(@cacheDir, 'imports.json'))
+
     @setImportPaths(importPaths)
+
+  getDirectory: -> @cacheDir
+
+  getImportPaths: -> _.clone(@importPaths)
 
   setImportPaths: (@importPaths=[]) ->
     importedFiles = []
@@ -20,12 +28,11 @@ class LessCache
       walkdir importPath, (filePath, stat) ->
         importedFiles.push(filePath) if stat.isFile()
 
-    if @importedFiles? and not _.isEqual(@importedFiles, importedFiles)
+    unless _.isEqual(@importedFiles, importedFiles)
       rm(@cacheDir)
-
-    @importedFiles = importedFiles
-    mkdir(@cacheDir)
-    fs.writeFileSync(join(@cacheDir, 'less-cache.json'), JSON.stringify({importedFiles}))
+      @importedFiles = importedFiles
+      mkdir(@cacheDir)
+      @writeJson(join(@cacheDir, 'imports.json'), {importedFiles})
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
@@ -42,6 +49,11 @@ class LessCache
 
     importedPaths
 
+  readJson: (filePath) -> JSON.parse(fs.readFileSync(filePath))
+
+  writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
+
+
   digestForPath: (filePath) ->
     @digestForContent(fs.readFileSync(filePath))
 
@@ -50,7 +62,7 @@ class LessCache
 
   getCachePath: (filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
-    join(@cacheDir, dirname(filePath), cacheFile)
+    join(@cacheDir, 'content', dirname(filePath), cacheFile)
 
   getCachedCss: (filePath, digest) ->
     try
@@ -71,7 +83,7 @@ class LessCache
   putCachedCss: (filePath, digest, css, imports) ->
     cachePath = @getCachePath(filePath)
     mkdir(dirname(cachePath))
-    fs.writeFileSync(cachePath, JSON.stringify({digest, css, imports, version: cacheVersion}))
+    @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 
   parseLess: (filePath, less) ->
     css = null
