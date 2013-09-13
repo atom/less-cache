@@ -15,7 +15,10 @@ describe "LessCache", ->
       reader = fstream.Reader(join(__dirname, 'fixtures'))
       reader.on 'end', ->
         fixturesDir = tempDir
-        cache = new LessCache(importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
+        cacheConfig =
+          importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
+          cacheDir: join(tempDir, 'cache')
+        cache = new LessCache(cacheConfig)
       reader.pipe(fstream.Writer(tempDir))
 
     waitsFor -> fixturesDir?

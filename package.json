@@ -11,7 +11,9 @@
   "dependencies": {
     "less": "~1.4.2",
     "tmp": "0.0.21",
-    "fstream": "~0.1.24"
+    "fstream": "~0.1.24",
+    "rimraf": "~2.2.2",
+    "mkdirp": "~0.3.5"
   },
   "devDependencies": {
     "jasmine-focused": "~0.12.0"

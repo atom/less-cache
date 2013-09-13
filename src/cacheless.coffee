@@ -1,15 +1,20 @@
 crypto = require 'crypto'
 fs = require 'fs'
+{basename, dirname, extname, join} = require 'path'
 
 {Parser} = require 'less'
+mkdir = require('mkdirp').sync
+rm = require('rimraf').sync
+
+cacheVersion = 1
 
 module.exports =
 class LessCache
-  constructor: ({importPaths}={}) ->
-    @setImportPaths(importPaths)
+  constructor: ({@importPaths, @cacheDir}={}) ->
+    console.log @cacheDir
 
   setImportPaths: (@importPaths) ->
-    @cssCache = {}
+    rm(@cacheDir)
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
@@ -32,10 +37,17 @@ class LessCache
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content).digest('hex')
 
+  getCachePath: (filePath) ->
+    cacheFile = "#{basename(filePath, extname(filePath))}.json"
+    join(@cacheDir, dirname(filePath), cacheFile)
+
   getCachedCss: (filePath, digest) ->
-    cacheEntry = @cssCache[filePath]
-    return unless cacheEntry?
-    return unless digest is cacheEntry.digest
+    try
+      cacheEntry = JSON.parse(fs.readFileSync(@getCachePath(filePath)))
+    catch error
+      return
+
+    return unless digest is cacheEntry?.digest
 
     for {path, digest} in cacheEntry.imports
       try
@@ -44,6 +56,11 @@ class LessCache
         return
 
     cacheEntry.css
+
+  putCachedCss: (filePath, digest, css, imports) ->
+    cachePath = @getCachePath(filePath)
+    mkdir(dirname(cachePath))
+    fs.writeFileSync(cachePath, JSON.stringify({digest, css, imports, version: cacheVersion}))
 
   readFileSync: (filePath) ->
     lessContent = fs.readFileSync(filePath, 'utf8')
@@ -60,6 +77,6 @@ class LessCache
           else
             cssContent = tree.toCSS()
 
-      @cssCache[filePath] = {digest, css: cssContent, imports: importedPaths}
+      @putCachedCss(filePath, digest, cssContent, importedPaths)
 
     cssContent
