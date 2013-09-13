@@ -114,6 +114,11 @@ describe "LessCache", ->
       """
 
     it "reflect changes to the import paths array", ->
+      spyOn(cache, 'parseLess').andCallThrough()
+      cache.setImportPaths([join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
+      cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(cache.parseLess.callCount).toBe 0
+
       cache.setImportPaths([join(fixturesDir, 'imports-2'), join(fixturesDir, 'imports-1')])
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """

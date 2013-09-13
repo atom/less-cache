@@ -5,15 +5,27 @@ fs = require 'fs'
 {Parser} = require 'less'
 mkdir = require('mkdirp').sync
 rm = require('rimraf').sync
+walkdir = require('walkdir').sync
 
 cacheVersion = 1
 
 module.exports =
 class LessCache
-  constructor: ({@importPaths, @cacheDir}={}) ->
+  constructor: ({@cacheDir, importPaths}={}) ->
+    @setImportPaths(importPaths)
 
-  setImportPaths: (@importPaths) ->
-    rm(@cacheDir)
+  setImportPaths: (@importPaths=[]) ->
+    importedFiles = []
+    for importPath in @importPaths
+      walkdir importPath, (filePath, stat) ->
+        importedFiles.push(filePath) if stat.isFile()
+
+    if @importedFiles? and not _.isEqual(@importedFiles, importedFiles)
+      rm(@cacheDir)
+
+    @importedFiles = importedFiles
+    mkdir(@cacheDir)
+    fs.writeFileSync(join(@cacheDir, 'less-cache.json'), JSON.stringify({importedFiles}))
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
