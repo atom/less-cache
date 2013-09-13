@@ -4,7 +4,7 @@ fs = require 'fs'
 tmp = require 'tmp'
 fstream = require 'fstream'
 
-LessCache = require '../src/cacheless'
+LessCache = require '../src/less-cache'
 
 describe "LessCache", ->
   [cache, fixturesDir] = []

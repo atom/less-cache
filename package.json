@@ -1,13 +1,11 @@
 {
-  "name": "cacheless",
+  "name": "less-cache",
   "version": "0.0.0",
   "description": "",
-  "main": "./lib/cacheless",
+  "main": "./src/less-cache",
   "scripts": {
     "test": "jasmine-focused --captureExceptions --coffee spec"
   },
-  "author": "",
-  "license": "BSD-2-Clause",
   "dependencies": {
     "less": "~1.4.2",
     "rimraf": "~2.2.2",
