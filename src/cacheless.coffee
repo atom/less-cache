@@ -11,7 +11,6 @@ cacheVersion = 1
 module.exports =
 class LessCache
   constructor: ({@importPaths, @cacheDir}={}) ->
-    console.log @cacheDir
 
   setImportPaths: (@importPaths) ->
     rm(@cacheDir)
