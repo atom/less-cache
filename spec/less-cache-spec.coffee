@@ -119,7 +119,7 @@ describe "LessCache", ->
       cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(cache.parseLess.callCount).toBe 0
 
-      cache.setImportPaths([join(fixturesDir, 'imports-2'), join(fixturesDir, 'imports-1')])
+      cache.setImportPaths([join(fixturesDir, 'imports-2'), join(fixturesDir, 'imports-1'), join(fixturesDir, 'import-does-not-exist')])
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         body {

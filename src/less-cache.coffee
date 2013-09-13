@@ -25,8 +25,11 @@ class LessCache
   setImportPaths: (@importPaths=[]) ->
     importedFiles = []
     for importPath in @importPaths
-      walkdir importPath, (filePath, stat) ->
-        importedFiles.push(filePath) if stat.isFile()
+      try
+        walkdir importPath, no_return: true, (filePath, stat) ->
+          importedFiles.push(filePath) if stat.isFile()
+      catch error
+        continue
 
     unless _.isEqual(@importedFiles, importedFiles)
       rm(@cacheDir)
