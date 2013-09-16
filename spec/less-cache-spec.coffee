@@ -136,3 +136,9 @@ describe "LessCache", ->
       spyOn(cache2, 'parseLess').andCallThrough()
       cache2.readFileSync(join(fixturesDir, 'imports.less'))
       expect(cache2.parseLess.callCount).toBe 0
+
+    it "throws compile errors", ->
+      expect(-> cache.readFileSync(join(fixturesDir, 'invalid.less'))).toThrow()
+
+    it "throws file not found errors", ->
+      expect(-> cache.readFileSync(join(fixturesDir, 'does-not-exist.less'))).toThrow()
