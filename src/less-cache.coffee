@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 fs = require 'fs'
-{basename, dirname, extname, join} = require 'path'
+{basename, dirname, extname, join, relative} = require 'path'
 
 _ = require 'underscore'
 {Parser} = require 'less'
@@ -12,7 +12,7 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
-  constructor: ({@cacheDir, @importPaths}={}) ->
+  constructor: ({@cacheDir, @importPaths, @resourcePath}={}) ->
     @importsCacheDir = @cacheDirectoryForImports(@importPaths)
     try
       {@importedFiles} = @readJson(join(@importsCacheDir, 'imports.json'))
@@ -80,7 +80,11 @@ class LessCache
 
   getCachePath: (filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
-    join(@importsCacheDir, 'content', dirname(filePath), cacheFile)
+    directoryPath = dirname(filePath)
+    if @resourcePath
+      relativePath = relative(@resourcePath, directoryPath)
+      directoryPath = relativePath unless relativePath.indexOf('..') is 0
+    join(@importsCacheDir, 'content', directoryPath, cacheFile)
 
   getCachedCss: (filePath, digest) ->
     try

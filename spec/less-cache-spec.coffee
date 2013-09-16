@@ -159,3 +159,9 @@ describe "LessCache", ->
 
     it "throws file not found errors", ->
       expect(-> cache.readFileSync(join(fixturesDir, 'does-not-exist.less'))).toThrow()
+
+    it "relativizes cache paths based on the configured resource path", ->
+      cache2 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths(), resourcePath: fixturesDir)
+      expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).toBeFalsy()
+      cache2.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).toBeTruthy()
