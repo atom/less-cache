@@ -67,7 +67,7 @@ class LessCache
     @digestForContent(fs.readFileSync(filePath))
 
   digestForContent: (content) ->
-    crypto.createHash('SHA1').update(content).digest('hex')
+    crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
 
   getCachePath: (filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
