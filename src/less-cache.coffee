@@ -23,6 +23,9 @@ class LessCache
     @setImportPaths(@importPaths)
 
   cacheDirectoryForImports: (importPaths=[]) ->
+    if @resourcePath
+      importPaths = importPaths.map (importPath) =>
+        @relativize(@resourcePath, importPath)
     join(@cacheDir, @digestForContent(importPaths.join('\n')))
 
   getDirectory: -> @cacheDir
@@ -83,12 +86,17 @@ class LessCache
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
 
+  relativize: (from, to) ->
+    relativePath = relative(from, to)
+    if relativePath.indexOf('..') is 0
+      to
+    else
+      relativePath
+
   getCachePath: (directory, filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
-    if @resourcePath
-      relativePath = relative(@resourcePath, directoryPath)
-      directoryPath = relativePath unless relativePath.indexOf('..') is 0
+    directoryPath = @relativize(@resourcePath, directoryPath) if @resourcePath
     join(directory, 'content', directoryPath, cacheFile)
 
   getCachedCss: (filePath, digest) ->
