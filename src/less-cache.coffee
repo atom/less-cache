@@ -68,6 +68,7 @@ class LessCache
     originalFsReadFileSync = fs.readFileSync
     fs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
+      filePath = @relativize(@resourcePath, filePath) if @resourcePath
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
       content
 
@@ -113,6 +114,7 @@ class LessCache
 
     for {path, digest} in cacheEntry.imports
       try
+        path = join(@resourcePath, path) if @resourcePath and path[0] isnt '/'
         return if @digestForPath(path) isnt digest
       catch error
         return
