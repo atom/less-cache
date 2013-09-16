@@ -2,3 +2,4 @@
 spec
 .pairs
 .travis.yml
+.npmignore
