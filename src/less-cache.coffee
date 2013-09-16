@@ -36,8 +36,10 @@ class LessCache
     importedFiles = []
     for importPath in importPaths
       try
-        walkdir importPath, no_return: true, (filePath, stat) ->
-          importedFiles.push(filePath) if stat.isFile()
+        walkdir importPath, no_return: true, (filePath, stat) =>
+          return unless stat.isFile()
+          filePath = @relativize(@resourcePath, filePath) if @resourcePath
+          importedFiles.push(filePath)
       catch error
         continue
 
