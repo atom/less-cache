@@ -1,3 +1,4 @@
 *.coffee
 spec
 .pairs
+.travis.ymlc

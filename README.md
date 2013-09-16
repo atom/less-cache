@@ -1,4 +1,4 @@
-# Less Cache
+# Less Cache [![Build Status](https://travis-ci.org/atom/less-cache.png)](https://travis-ci.org/atom/less-cache)
 
 Caches the compiled `.less` files as `.css`.
 
