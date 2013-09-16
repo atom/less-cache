@@ -26,20 +26,23 @@ class LessCache
 
   getImportPaths: -> _.clone(@importPaths)
 
-  setImportPaths: (@importPaths=[]) ->
+  setImportPaths: (importPaths=[]) ->
     importedFiles = []
-    for importPath in @importPaths
+    for importPath in importPaths
       try
         walkdir importPath, no_return: true, (filePath, stat) ->
           importedFiles.push(filePath) if stat.isFile()
       catch error
         continue
 
-    unless _.isEqual(@importedFiles, importedFiles)
-      @importedFiles = importedFiles
+    unless _.isEqual(@importPaths, importPaths) and _.isEqual(@importedFiles, importedFiles)
       @importsCacheDir = @cacheDirectoryForImports(importPaths)
+      rm(@importsCacheDir) if _.isEqual(@importPaths, importPaths)
       mkdir(@importsCacheDir)
       @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
+
+    @importedFiles = importedFiles
+    @importPaths = importPaths
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []

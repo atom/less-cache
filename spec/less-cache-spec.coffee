@@ -76,8 +76,9 @@ describe "LessCache", ->
 
       """
 
-    xit "reflects changes to files on the import path", ->
+    it "reflects changes to files on the import path", ->
       fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 40;')
+      cache.setImportPaths(cache.getImportPaths())
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         body {
@@ -90,6 +91,7 @@ describe "LessCache", ->
       """
 
       fs.unlinkSync(join(fixturesDir, 'imports-1', 'c.less'))
+      cache.setImportPaths(cache.getImportPaths())
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         body {
@@ -102,6 +104,7 @@ describe "LessCache", ->
       """
 
       fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 400;')
+      cache.setImportPaths(cache.getImportPaths())
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
       expect(css).toBe """
         body {
