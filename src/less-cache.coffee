@@ -12,12 +12,12 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
-  constructor: ({@cacheDir, importPaths}={}) ->
-    @importsCacheDir = @cacheDirectoryForImports(importPaths)
+  constructor: ({@cacheDir, @importPaths}={}) ->
+    @importsCacheDir = @cacheDirectoryForImports(@importPaths)
     try
       {@importedFiles} = @readJson(join(@importsCacheDir, 'imports.json'))
 
-    @setImportPaths(importPaths)
+    @setImportPaths(@importPaths)
 
   cacheDirectoryForImports: (importPaths=[]) ->
     join(@cacheDir, @digestForContent(importPaths.join('\n')))
@@ -26,7 +26,7 @@ class LessCache
 
   getImportPaths: -> _.clone(@importPaths)
 
-  setImportPaths: (importPaths=[]) ->
+  getImportedFiles: (importPaths) ->
     importedFiles = []
     for importPath in importPaths
       try
@@ -35,9 +35,19 @@ class LessCache
       catch error
         continue
 
-    unless _.isEqual(@importPaths, importPaths) and _.isEqual(@importedFiles, importedFiles)
+    importedFiles
+
+  setImportPaths: (importPaths=[]) ->
+    importedFiles = @getImportedFiles(importPaths)
+
+    pathsChanged = not _.isEqual(@importPaths, importPaths)
+    filesChanged = not _.isEqual(@importedFiles, importedFiles)
+    if pathsChanged
       @importsCacheDir = @cacheDirectoryForImports(importPaths)
-      rm(@importsCacheDir) if _.isEqual(@importPaths, importPaths)
+      mkdir(@importsCacheDir)
+      @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
+    else if filesChanged
+      rm(@importsCacheDir)
       mkdir(@importsCacheDir)
       @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
 
