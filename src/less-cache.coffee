@@ -39,7 +39,7 @@ class LessCache
       @importedFiles = importedFiles
       @importsCacheDir = @cacheDirectoryForImports(importPaths)
       mkdir(@importsCacheDir)
-      @writeJson(join(@cacheDir, 'imports.json'), {importedFiles})
+      @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
