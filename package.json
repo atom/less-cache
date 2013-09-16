@@ -4,8 +4,22 @@
   "description": "LESS compile cache",
   "main": "./lib/less-cache",
   "scripts": {
+    "prepublish": "grunt clean lint coffee",
     "test": "grunt test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/less-cache.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/less-cache/issues"
+  },
+  "homepage": "http://atom.github.io/less-cache",
+  "keywords": [
+    "less",
+    "less.js",
+    "cache"
+  ],
   "licenses": [
     {
       "type": "MIT",
