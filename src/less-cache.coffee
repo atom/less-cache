@@ -13,10 +13,14 @@ cacheVersion = 1
 module.exports =
 class LessCache
   constructor: ({@cacheDir, importPaths}={}) ->
+    @importsCacheDir = @cacheDirectoryForImports(importPaths)
     try
-      {@importedFiles} = @readJson(join(@cacheDir, 'imports.json'))
+      {@importedFiles} = @readJson(join(@importsCacheDir, 'imports.json'))
 
     @setImportPaths(importPaths)
+
+  cacheDirectoryForImports: (importPaths=[]) ->
+    join(@cacheDir, @digestForContent(importPaths.join('\n')))
 
   getDirectory: -> @cacheDir
 
@@ -32,9 +36,9 @@ class LessCache
         continue
 
     unless _.isEqual(@importedFiles, importedFiles)
-      rm(@cacheDir)
       @importedFiles = importedFiles
-      mkdir(@cacheDir)
+      @importsCacheDir = @cacheDirectoryForImports(importPaths)
+      mkdir(@importsCacheDir)
       @writeJson(join(@cacheDir, 'imports.json'), {importedFiles})
 
   observeImportedFilePaths: (callback) ->
@@ -64,7 +68,7 @@ class LessCache
 
   getCachePath: (filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
-    join(@cacheDir, 'content', dirname(filePath), cacheFile)
+    join(@importsCacheDir, 'content', dirname(filePath), cacheFile)
 
   getCachedCss: (filePath, digest) ->
     try

@@ -130,6 +130,20 @@ describe "LessCache", ->
         }
 
       """
+      expect(cache.parseLess.callCount).toBe 1
+
+      cache.parseLess.reset()
+      cache.setImportPaths([join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
+      expect(cache.readFileSync(join(fixturesDir, 'imports.less'))).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 3;
+          d: 4;
+        }
+
+      """
+      expect(cache.parseLess.callCount).toBe 0
 
     it "reuses cached CSS across cache instances", ->
       cache2 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
