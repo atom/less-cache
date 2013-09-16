@@ -44,12 +44,11 @@ class LessCache
     filesChanged = not _.isEqual(@importedFiles, importedFiles)
     if pathsChanged
       @importsCacheDir = @cacheDirectoryForImports(importPaths)
-      mkdir(@importsCacheDir)
-      @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
     else if filesChanged
       rm(@importsCacheDir)
-      mkdir(@importsCacheDir)
-      @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
+
+    mkdir(@importsCacheDir)
+    @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
 
     @importedFiles = importedFiles
     @importPaths = importPaths
