@@ -12,8 +12,11 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
-  constructor: ({@cacheDir, @importPaths, @resourcePath}={}) ->
+  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir}={}) ->
     @importsCacheDir = @cacheDirectoryForImports(@importPaths)
+    if @fallbackDir
+      @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
+
     try
       {@importedFiles} = @readJson(join(@importsCacheDir, 'imports.json'))
 
@@ -44,6 +47,8 @@ class LessCache
     filesChanged = not _.isEqual(@importedFiles, importedFiles)
     if pathsChanged
       @importsCacheDir = @cacheDirectoryForImports(importPaths)
+      if @fallbackDir
+        @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
     else if filesChanged
       rm(@importsCacheDir)
 
@@ -78,19 +83,21 @@ class LessCache
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
 
-  getCachePath: (filePath) ->
+  getCachePath: (directory, filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
     if @resourcePath
       relativePath = relative(@resourcePath, directoryPath)
       directoryPath = relativePath unless relativePath.indexOf('..') is 0
-    join(@importsCacheDir, 'content', directoryPath, cacheFile)
+    join(directory, 'content', directoryPath, cacheFile)
 
   getCachedCss: (filePath, digest) ->
     try
-      cacheEntry = @readJson(@getCachePath(filePath))
+      cacheEntry = @readJson(@getCachePath(@importsCacheDir, filePath))
     catch error
-      return
+      if @importsFallbackDir?
+        try
+          cacheEntry = @readJson(@getCachePath(@importsFallbackDir, filePath))
 
     return unless digest is cacheEntry?.digest
 
@@ -103,7 +110,7 @@ class LessCache
     cacheEntry.css
 
   putCachedCss: (filePath, digest, css, imports) ->
-    cachePath = @getCachePath(filePath)
+    cachePath = @getCachePath(@importsCacheDir, filePath)
     mkdir(dirname(cachePath))
     @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 

@@ -1,5 +1,5 @@
 fs = require 'fs'
-{join} = require 'path'
+{dirname, join} = require 'path'
 
 tmp = require 'tmp'
 fstream = require 'fstream'
@@ -165,3 +165,21 @@ describe "LessCache", ->
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).toBeFalsy()
       cache2.readFileSync(join(fixturesDir, 'imports.less'))
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).toBeTruthy()
+
+    it "uses the fallback directory when no cache entry is found in the primary directory", ->
+      cache2 = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'cache2')
+        importPaths: cache.getImportPaths()
+        fallbackDir: cache.getDirectory()
+        resourcePath: fixturesDir
+      cache2.readFileSync(join(fixturesDir, 'imports.less'))
+
+      cache3 = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'cache3')
+        importPaths: cache2.getImportPaths()
+        fallbackDir: cache2.getDirectory()
+        resourcePath: fixturesDir
+
+      spyOn(cache3, 'parseLess').andCallThrough()
+      cache3.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(cache3.parseLess.callCount).toBe 0
