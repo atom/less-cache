@@ -6,6 +6,12 @@
   "scripts": {
     "test": "grunt test"
   },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/atom/less-cache/raw/master/LICENSE.md"
+    }
+  ],
   "dependencies": {
     "less": "~1.4.2",
     "rimraf": "~2.2.2",
