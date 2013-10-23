@@ -27,7 +27,7 @@
     }
   ],
   "dependencies": {
-    "less": "~1.4.2",
+    "less": "~1.5.0",
     "rimraf": "~2.2.2",
     "mkdirp": "~0.3.5",
     "underscore": "~1.5.2",
