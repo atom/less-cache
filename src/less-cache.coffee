@@ -1,8 +1,9 @@
 crypto = require 'crypto'
-fs = require 'fs'
+nodeFs = require 'fs'
 {basename, dirname, extname, join, relative} = require 'path'
 
 _ = require 'underscore'
+fs = require 'fs-plus'
 {Parser} = require 'less'
 mkdir = require('mkdirp').sync
 rm = require('rimraf').sync
@@ -81,8 +82,8 @@ class LessCache
   # Private:
   observeImportedFilePaths: (callback) ->
     importedPaths = []
-    originalFsReadFileSync = fs.readFileSync
-    fs.readFileSync = (filePath, args...) =>
+    originalFsReadFileSync = nodeFs.readFileSync
+    nodeFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
       filePath = @relativize(@resourcePath, filePath) if @resourcePath
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
@@ -91,7 +92,7 @@ class LessCache
     try
       callback()
     finally
-      fs.readFileSync = originalFsReadFileSync
+      nodeFs.readFileSync = originalFsReadFileSync
 
     importedPaths
 
@@ -137,7 +138,7 @@ class LessCache
 
     for {path, digest} in cacheEntry.imports
       try
-        path = join(@resourcePath, path) if @resourcePath and path[0] isnt '/'
+        path = join(@resourcePath, path) if @resourcePath and not fs.isAbsolute(path)
         return if @digestForPath(path) isnt digest
       catch error
         return
