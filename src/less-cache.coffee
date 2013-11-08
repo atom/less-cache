@@ -123,6 +123,7 @@ class LessCache
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
     directoryPath = @relativize(@resourcePath, directoryPath) if @resourcePath
+    directoryPath = @digestForContent(directoryPath) if directoryPath
     join(directory, 'content', directoryPath, cacheFile)
 
   # Private:
