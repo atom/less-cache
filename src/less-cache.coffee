@@ -5,7 +5,6 @@ nodeFs = require 'fs'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Parser} = require 'less'
-mkdir = require('mkdirp').sync
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -72,7 +71,7 @@ class LessCache
     else if filesChanged
       fs.removeSync(@importsCacheDir)
 
-    mkdir(@importsCacheDir)
+    fs.makeTreeSync(@importsCacheDir)
     @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
 
     @importedFiles = importedFiles
@@ -148,7 +147,7 @@ class LessCache
   # Private:
   putCachedCss: (filePath, digest, css, imports) ->
     cachePath = @getCachePath(@importsCacheDir, filePath)
-    mkdir(dirname(cachePath))
+    fs.makeTreeSync(dirname(cachePath))
     @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 
   # Private:
