@@ -2,7 +2,7 @@ crypto = require 'crypto'
 nodeFs = require 'fs'
 {basename, dirname, extname, join, relative} = require 'path'
 
-_ = require 'underscore'
+_ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Parser} = require 'less'
 mkdir = require('mkdirp').sync
