@@ -32,7 +32,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-coffeelint')
 
-  grunt.registerTask 'clean', -> require('rimraf').sync('lib')
+  grunt.registerTask 'clean', -> require('fs-plus').removeSync('lib')
   grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test'])
   grunt.registerTask('default', ['coffeelint', 'coffee'])
   grunt.registerTask('test', ['default', 'coffeelint:test', 'shell:test'])
