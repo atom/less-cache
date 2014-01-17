@@ -28,7 +28,6 @@
   ],
   "dependencies": {
     "less": "~1.5.0",
-    "rimraf": "~2.2.2",
     "mkdirp": "~0.3.5",
     "underscore-plus": "1.x",
     "walkdir": "0.0.7",

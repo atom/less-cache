@@ -6,7 +6,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Parser} = require 'less'
 mkdir = require('mkdirp').sync
-rm = require('rimraf').sync
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -71,7 +70,7 @@ class LessCache
       if @fallbackDir
         @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
     else if filesChanged
-      rm(@importsCacheDir)
+      fs.removeSync(@importsCacheDir)
 
     mkdir(@importsCacheDir)
     @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
