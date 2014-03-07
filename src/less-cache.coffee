@@ -69,7 +69,7 @@ class LessCache
       if @fallbackDir
         @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
     else if filesChanged
-      fs.removeSync(@importsCacheDir)
+      fs.removeSync(@importsCacheDir) if fs.existsSync(@importsCacheDir)
 
     fs.makeTreeSync(@importsCacheDir)
     @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
