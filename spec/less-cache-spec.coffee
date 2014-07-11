@@ -23,7 +23,7 @@ describe "LessCache", ->
 
     waitsFor -> fixturesDir?
 
-  describe "::toCss(filePath)", ->
+  describe "::cssForFile(filePath)", ->
     filePath = null
     fileLess = """
     @import "a";
@@ -43,7 +43,7 @@ describe "LessCache", ->
       filePath = join(fixturesDir, 'imports.less')
 
     it "returns the compiled CSS for a given path and LESS content", ->
-      css = cache.toCss(filePath, fileLess)
+      css = cache.cssForFile(filePath, fileLess)
       expect(css).toBe """
         body {
           a: 1;
