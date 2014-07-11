@@ -23,6 +23,37 @@ describe "LessCache", ->
 
     waitsFor -> fixturesDir?
 
+  describe "::cssForFile(filePath)", ->
+    filePath = null
+    fileLess = """
+    @import "a";
+    @import "b";
+    @import "c";
+    @import "d";
+
+    body {
+      a: @a;
+      b: @b;
+      c: @c;
+      d: @d;
+    }
+    """
+
+    beforeEach ->
+      filePath = join(fixturesDir, 'imports.less')
+
+    it "returns the compiled CSS for a given path and LESS content", ->
+      css = cache.cssForFile(filePath, fileLess)
+      expect(css).toBe """
+        body {
+          a: 1;
+          b: 2;
+          c: 3;
+          d: 4;
+        }
+
+      """
+
   describe "::readFileSync(filePath)", ->
     [css] = []
 

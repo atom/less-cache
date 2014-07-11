@@ -171,11 +171,21 @@ class LessCache
   #
   # Returns the compiled CSS for the given path.
   readFileSync: (filePath) ->
-    less = fs.readFileSync(filePath, 'utf8')
-    digest = @digestForContent(less)
+    @cssForFile(filePath, fs.readFileSync(filePath, 'utf8'))
+
+  # Return either cached CSS or the newly
+  # compiled CSS from `lessContent`. This method caches the compiled CSS after it is generated. This cached
+  # CSS will be returned as long as the LESS file and any of its imports are unchanged.
+  #
+  # filePath: A string path to the LESS file.
+  # lessContent: The contents of the filePath
+  #
+  # Returns the compiled CSS for the given path and lessContent
+  cssForFile: (filePath, lessContent) ->
+    digest = @digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     unless css?
-      {imports, css} = @parseLess(filePath, less)
+      {imports, css} = @parseLess(filePath, lessContent)
       @putCachedCss(filePath, digest, css, imports)
 
     css
