@@ -171,11 +171,13 @@ class LessCache
   #
   # Returns the compiled CSS for the given path.
   readFileSync: (filePath) ->
-    less = fs.readFileSync(filePath, 'utf8')
-    digest = @digestForContent(less)
+    @toCss(filePath, fs.readFileSync(filePath, 'utf8'))
+
+  toCss: (filePath, lessContent) ->
+    digest = @digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     unless css?
-      {imports, css} = @parseLess(filePath, less)
+      {imports, css} = @parseLess(filePath, lessContent)
       @putCachedCss(filePath, digest, css, imports)
 
     css
