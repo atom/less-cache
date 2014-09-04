@@ -4,7 +4,7 @@ nodeFs = require 'fs'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-{Parser} = require 'less'
+Parser = null # Defer until it is actually used
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -154,6 +154,7 @@ class LessCache
   parseLess: (filePath, less) ->
     css = null
     options = filename: filePath, syncImport: true, paths: @importPaths
+    Parser ?= require('less').Parser
     parser = new Parser(options)
     imports = @observeImportedFilePaths =>
       parser.parse less, (error, tree) =>
