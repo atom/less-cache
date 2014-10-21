@@ -73,9 +73,8 @@ class LessCache
         fs.removeSync(@importsCacheDir)
       catch error
         if error?.code is 'ENOENT'
-          fs.removeSync(@importsCacheDir) # Retry once
-        else
-          throw error
+          try
+            fs.removeSync(@importsCacheDir) # Retry once
 
     fs.makeTreeSync(@importsCacheDir)
     @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
