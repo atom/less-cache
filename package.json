@@ -1,6 +1,6 @@
 {
   "name": "less-cache",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "LESS compile cache",
   "main": "./lib/less-cache",
   "scripts": {
