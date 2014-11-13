@@ -1,5 +1,5 @@
 crypto = require 'crypto'
-nodeFs = require 'fs'
+nodeFs = require 'less/lib/less/fs.js'
 {basename, dirname, extname, join, relative} = require 'path'
 
 _ = require 'underscore-plus'
