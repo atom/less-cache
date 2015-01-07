@@ -34,7 +34,6 @@ class LessCache
 
     @setImportPaths(@importPaths)
 
-  # Private:
   cacheDirectoryForImports: (importPaths=[]) ->
     if @resourcePath
       importPaths = importPaths.map (importPath) =>
@@ -45,7 +44,6 @@ class LessCache
 
   getImportPaths: -> _.clone(@importPaths)
 
-  # Private:
   getImportedFiles: (importPaths) ->
     importedFiles = []
     for importPath in importPaths
@@ -81,7 +79,6 @@ class LessCache
     @importedFiles = importedFiles
     @importPaths = importPaths
 
-  # Private:
   observeImportedFilePaths: (callback) ->
     importedPaths = []
     originalFsReadFileSync = nodeFs.readFileSync
@@ -98,21 +95,16 @@ class LessCache
 
     importedPaths
 
-  # Private:
   readJson: (filePath) -> JSON.parse(fs.readFileSync(filePath))
 
-  # Private:
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
 
-  # Private:
   digestForPath: (filePath) ->
     @digestForContent(fs.readFileSync(filePath))
 
-  # Private:
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
 
-  # Private:
   relativize: (from, to) ->
     relativePath = relative(from, to)
     if relativePath.indexOf('..') is 0
@@ -120,7 +112,6 @@ class LessCache
     else
       relativePath
 
-  # Private:
   getCachePath: (directory, filePath) ->
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
@@ -128,7 +119,6 @@ class LessCache
     directoryPath = @digestForContent(directoryPath) if directoryPath
     join(directory, 'content', directoryPath, cacheFile)
 
-  # Private:
   getCachedCss: (filePath, digest) ->
     try
       cacheEntry = @readJson(@getCachePath(@importsCacheDir, filePath))
@@ -148,12 +138,10 @@ class LessCache
 
     cacheEntry.css
 
-  # Private:
   putCachedCss: (filePath, digest, css, imports) ->
     cachePath = @getCachePath(@importsCacheDir, filePath)
     @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 
-  # Private:
   parseLess: (filePath, less) ->
     css = null
     options = filename: filePath, syncImport: true, paths: @importPaths
