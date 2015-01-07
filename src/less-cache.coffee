@@ -76,7 +76,6 @@ class LessCache
           try
             fs.removeSync(@importsCacheDir) # Retry once
 
-    fs.makeTreeSync(@importsCacheDir)
     @writeJson(join(@importsCacheDir, 'imports.json'), {importedFiles})
 
     @importedFiles = importedFiles
@@ -152,7 +151,6 @@ class LessCache
   # Private:
   putCachedCss: (filePath, digest, css, imports) ->
     cachePath = @getCachePath(@importsCacheDir, filePath)
-    fs.makeTreeSync(dirname(cachePath))
     @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 
   # Private:
