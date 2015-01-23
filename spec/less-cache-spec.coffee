@@ -59,6 +59,8 @@ describe "LessCache", ->
 
     beforeEach ->
       css = cache.readFileSync(join(fixturesDir, 'imports.less'))
+      expect(cache.stats.hits).toBe 0
+      expect(cache.stats.misses).toBe 1
 
     it "returns the compiled CSS for a given LESS file path", ->
       expect(css).toBe """
@@ -83,6 +85,8 @@ describe "LessCache", ->
 
       """
       expect(cache.parseLess.callCount).toBe 0
+      expect(cache.stats.hits).toBe 1
+      expect(cache.stats.misses).toBe 1
 
     it "reflects changes to the file being read", ->
       fs.writeFileSync(join(fixturesDir, 'imports.less'), 'body { display: block; }')

@@ -34,6 +34,10 @@ class LessCache
 
     @setImportPaths(@importPaths)
 
+    @stats =
+      hits: 0
+      misses: 0
+
   cacheDirectoryForImports: (importPaths=[]) ->
     if @resourcePath
       importPaths = importPaths.map (importPath) =>
@@ -176,8 +180,11 @@ class LessCache
   cssForFile: (filePath, lessContent) ->
     digest = @digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
-    unless css?
-      {imports, css} = @parseLess(filePath, lessContent)
-      @putCachedCss(filePath, digest, css, imports)
+    if css?
+      @stats.hits++
+      return css
 
+    @stats.misses++
+    {imports, css} = @parseLess(filePath, lessContent)
+    @putCachedCss(filePath, digest, css, imports)
     css
