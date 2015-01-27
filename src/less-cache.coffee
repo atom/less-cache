@@ -199,6 +199,7 @@ class LessCache
   #
   # Returns the compiled CSS for the given path and lessContent
   cssForFile: (filePath, lessContent) ->
+    lessContent += @getFooter(filePath)
     digest = @digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     if css?
