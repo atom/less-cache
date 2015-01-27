@@ -168,6 +168,14 @@ class LessCache
   getFooter: (filePath) ->
     @footers[filePath] ? ''
 
+  # Add a string footer that should be added to the Less content at the file
+  # path whenever this is read. This is useful for adding dynamic variables
+  #
+  # filePath: A string path to a Less file.
+  # footer: A string of Less content to add to the end of the file when it is
+  #         read.
+  #
+  # Returns undefined.
   addFooter: (filePath, footer) ->
     @footers[filePath] = footer
     return
