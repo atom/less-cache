@@ -11,12 +11,12 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
-  # Create a new LESS cache with the given options.
+  # Create a new Less cache with the given options.
   #
   # options - An object with following keys
   #   * cacheDir: A string path to the directory to store cached files in (required)
   #
-  #   * importPaths: An array of strings to configure the LESS parser with (optional)
+  #   * importPaths: An array of strings to configure the Less parser with (optional)
   #
   #   * resourcePath: A string path to use for relativizing paths. This is useful if
   #                   you want to make caches transferable between directories or
@@ -37,6 +37,8 @@ class LessCache
     @stats =
       hits: 0
       misses: 0
+
+    @footers = {}
 
   cacheDirectoryForImports: (importPaths=[]) ->
     if @resourcePath
@@ -88,6 +90,7 @@ class LessCache
     originalFsReadFileSync = nodeFs.readFileSync
     nodeFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
+      content += @getFooter(filePath)
       filePath = @relativize(@resourcePath, filePath) if @resourcePath
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
       content
@@ -104,7 +107,9 @@ class LessCache
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
 
   digestForPath: (filePath) ->
-    @digestForContent(fs.readFileSync(filePath))
+    content = fs.readFileSync(filePath, 'utf8')
+    content += @getFooter(filePath)
+    @digestForContent(content)
 
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
@@ -159,11 +164,33 @@ class LessCache
           css = tree.toCSS()
     {imports, css}
 
-  # Read the LESS file at the current path and return either the cached CSS or the newly
-  # compiled CSS. This method caches the compiled CSS after it is generated. This cached
-  # CSS will be returned as long as the LESS file and any of its imports are unchanged.
+  getFooter: (filePath) ->
+    @footers[filePath] ? ''
+
+  # Set the string footer that should be added to the Less content at the file
+  # path whenever this is read. This is useful for adding dynamic variables
   #
-  # filePath: A string path to a LESS file.
+  # filePath: A string path to a Less file.
+  # footer: A string of Less content to add to the end of the file when it is
+  #         read.
+  #
+  # Returns undefined.
+  setFooter: (filePath, footer) ->
+    @footers[filePath] = footer
+    return
+
+  # Remove all the footers from the cache.
+  #
+  # Returns undefined.
+  clearFooters: ->
+    @footers = {}
+    return
+
+  # Read the Less file at the current path and return either the cached CSS or the newly
+  # compiled CSS. This method caches the compiled CSS after it is generated. This cached
+  # CSS will be returned as long as the Less file and any of its imports are unchanged.
+  #
+  # filePath: A string path to a Less file.
   #
   # Returns the compiled CSS for the given path.
   readFileSync: (filePath) ->
@@ -171,13 +198,14 @@ class LessCache
 
   # Return either cached CSS or the newly
   # compiled CSS from `lessContent`. This method caches the compiled CSS after it is generated. This cached
-  # CSS will be returned as long as the LESS file and any of its imports are unchanged.
+  # CSS will be returned as long as the Less file and any of its imports are unchanged.
   #
-  # filePath: A string path to the LESS file.
+  # filePath: A string path to the Less file.
   # lessContent: The contents of the filePath
   #
   # Returns the compiled CSS for the given path and lessContent
   cssForFile: (filePath, lessContent) ->
+    lessContent += @getFooter(filePath)
     digest = @digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     if css?
