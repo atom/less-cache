@@ -176,7 +176,7 @@ class LessCache
   #         read.
   #
   # Returns undefined.
-  addFooter: (filePath, footer) ->
+  setFooter: (filePath, footer) ->
     @footers[filePath] = footer
     return
 
