@@ -11,12 +11,12 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
-  # Create a new LESS cache with the given options.
+  # Create a new Less cache with the given options.
   #
   # options - An object with following keys
   #   * cacheDir: A string path to the directory to store cached files in (required)
   #
-  #   * importPaths: An array of strings to configure the LESS parser with (optional)
+  #   * importPaths: An array of strings to configure the Less parser with (optional)
   #
   #   * resourcePath: A string path to use for relativizing paths. This is useful if
   #                   you want to make caches transferable between directories or
@@ -172,11 +172,11 @@ class LessCache
     @footers[filePath] = footer
     return
 
-  # Read the LESS file at the current path and return either the cached CSS or the newly
+  # Read the Less file at the current path and return either the cached CSS or the newly
   # compiled CSS. This method caches the compiled CSS after it is generated. This cached
-  # CSS will be returned as long as the LESS file and any of its imports are unchanged.
+  # CSS will be returned as long as the Less file and any of its imports are unchanged.
   #
-  # filePath: A string path to a LESS file.
+  # filePath: A string path to a Less file.
   #
   # Returns the compiled CSS for the given path.
   readFileSync: (filePath) ->
@@ -184,9 +184,9 @@ class LessCache
 
   # Return either cached CSS or the newly
   # compiled CSS from `lessContent`. This method caches the compiled CSS after it is generated. This cached
-  # CSS will be returned as long as the LESS file and any of its imports are unchanged.
+  # CSS will be returned as long as the Less file and any of its imports are unchanged.
   #
-  # filePath: A string path to the LESS file.
+  # filePath: A string path to the Less file.
   # lessContent: The contents of the filePath
   #
   # Returns the compiled CSS for the given path and lessContent
