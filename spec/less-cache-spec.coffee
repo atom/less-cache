@@ -42,7 +42,7 @@ describe "LessCache", ->
     beforeEach ->
       filePath = join(fixturesDir, 'imports.less')
 
-    it "returns the compiled CSS for a given path and LESS content", ->
+    it "returns the compiled CSS for a given path and Less content", ->
       css = cache.cssForFile(filePath, fileLess)
       expect(css).toBe """
         body {
@@ -62,7 +62,7 @@ describe "LessCache", ->
       expect(cache.stats.hits).toBe 0
       expect(cache.stats.misses).toBe 1
 
-    it "returns the compiled CSS for a given LESS file path", ->
+    it "returns the compiled CSS for a given Less file path", ->
       expect(css).toBe """
         body {
           a: 1;
@@ -73,7 +73,7 @@ describe "LessCache", ->
 
       """
 
-    it "returns the cached CSS for a given LESS file path", ->
+    it "returns the cached CSS for a given Less file path", ->
       spyOn(cache, 'parseLess').andCallThrough()
       expect(cache.readFileSync(join(fixturesDir, 'imports.less'))).toBe """
         body {
