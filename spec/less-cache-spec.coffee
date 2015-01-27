@@ -218,3 +218,55 @@ describe "LessCache", ->
       spyOn(cache3, 'parseLess').andCallThrough()
       cache3.readFileSync(join(fixturesDir, 'imports.less'))
       expect(cache3.parseLess.callCount).toBe 0
+
+  describe "addFooter(filePath, footer)", ->
+    describe "when the footer is for a file that is directly read", ->
+      it "appends the footer to the file", ->
+        filePath = join(fixturesDir, 'footer.less')
+        cache.addFooter(filePath, '\n@a: 2;')
+
+        css = cache.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache.stats.misses).toBe 1
+        expect(cache.stats.hits).toBe 0
+
+        css = cache.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache.stats.misses).toBe 1
+        expect(cache.stats.hits).toBe 1
+
+    describe "when the footer is for a file that is imported", ->
+      it "appends the footer to the imported file", ->
+        filePath = join(fixturesDir, 'footer.less')
+        importPath = join(fixturesDir, 'a.less')
+        cache.addFooter(importPath, '\n@a: 2;')
+
+        css = cache.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache.stats.misses).toBe 1
+        expect(cache.stats.hits).toBe 0
+
+        css = cache.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache.stats.misses).toBe 1
+        expect(cache.stats.hits).toBe 1

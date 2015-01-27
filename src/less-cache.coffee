@@ -38,6 +38,8 @@ class LessCache
       hits: 0
       misses: 0
 
+    @footers = {}
+
   cacheDirectoryForImports: (importPaths=[]) ->
     if @resourcePath
       importPaths = importPaths.map (importPath) =>
@@ -89,6 +91,7 @@ class LessCache
     nodeFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
       filePath = @relativize(@resourcePath, filePath) if @resourcePath
+      content += @getFooter(filePath)
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
       content
 
@@ -104,7 +107,9 @@ class LessCache
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
 
   digestForPath: (filePath) ->
-    @digestForContent(fs.readFileSync(filePath))
+    content = fs.readFileSync(filePath, 'utf8')
+    content += @getFooter(filePath)
+    @digestForContent(content)
 
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
@@ -148,6 +153,7 @@ class LessCache
 
   parseLess: (filePath, less) ->
     css = null
+    less += @getFooter(filePath)
     options = filename: filePath, syncImport: true, paths: @importPaths
     Parser ?= require('less').Parser
     parser = new Parser(options)
@@ -158,6 +164,13 @@ class LessCache
         else
           css = tree.toCSS()
     {imports, css}
+
+  getFooter: (filePath) ->
+    @footers[filePath] ? ''
+
+  addFooter: (filePath, footer) ->
+    @footers[filePath] = footer
+    return
 
   # Read the LESS file at the current path and return either the cached CSS or the newly
   # compiled CSS. This method caches the compiled CSS after it is generated. This cached
