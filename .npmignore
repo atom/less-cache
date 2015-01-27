@@ -3,3 +3,4 @@ spec
 .pairs
 .travis.yml
 .npmignore
+npm-debug.log
