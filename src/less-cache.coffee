@@ -90,8 +90,8 @@ class LessCache
     originalFsReadFileSync = nodeFs.readFileSync
     nodeFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
-      filePath = @relativize(@resourcePath, filePath) if @resourcePath
       content += @getFooter(filePath)
+      filePath = @relativize(@resourcePath, filePath) if @resourcePath
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
       content
 
@@ -178,6 +178,13 @@ class LessCache
   # Returns undefined.
   setFooter: (filePath, footer) ->
     @footers[filePath] = footer
+    return
+
+  # Remove all the footers from the cache.
+  #
+  # Returns undefined.
+  clearFooters: ->
+    @footers = {}
     return
 
   # Read the Less file at the current path and return either the cached CSS or the newly

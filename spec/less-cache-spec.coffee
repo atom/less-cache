@@ -274,6 +274,28 @@ describe "LessCache", ->
         expect(cache3.stats.misses).toBe 1
         expect(cache3.stats.hits).toBe 0
 
+      it "returns cached content when a fallback directory is present", ->
+        filePath = join(fixturesDir, 'footer.less')
+
+        cache2 = new LessCache
+          cacheDir: join(dirname(cache.getDirectory()), 'cache2')
+          importPaths: cache.getImportPaths()
+          fallbackDir: cache.getDirectory()
+          resourcePath: fixturesDir
+        cache2.setFooter(filePath, '\n@a: 2;')
+        cache2.readFileSync(filePath)
+
+        cache3 = new LessCache
+          cacheDir: join(dirname(cache.getDirectory()), 'cache3')
+          importPaths: cache2.getImportPaths()
+          fallbackDir: cache2.getDirectory()
+          resourcePath: fixturesDir
+        cache3.setFooter(filePath, '\n@a: 2;')
+
+        cache3.readFileSync(filePath)
+        expect(cache3.stats.misses).toBe 0
+        expect(cache3.stats.hits).toBe 1
+
     describe "when the footer is for a file that is imported", ->
       it "appends the footer to the imported file", ->
         filePath = join(fixturesDir, 'footer.less')
@@ -329,3 +351,26 @@ describe "LessCache", ->
         """
         expect(cache3.stats.misses).toBe 1
         expect(cache3.stats.hits).toBe 0
+
+      it "returns cached content when a fallback directory is present", ->
+        filePath = join(fixturesDir, 'footer.less')
+        importPath = join(fixturesDir, 'a.less')
+
+        cache2 = new LessCache
+          cacheDir: join(dirname(cache.getDirectory()), 'cache2')
+          importPaths: cache.getImportPaths()
+          fallbackDir: cache.getDirectory()
+          resourcePath: fixturesDir
+        cache2.setFooter(importPath, '\n@a: 2;')
+        cache2.readFileSync(filePath)
+
+        cache3 = new LessCache
+          cacheDir: join(dirname(cache.getDirectory()), 'cache3')
+          importPaths: cache2.getImportPaths()
+          fallbackDir: cache2.getDirectory()
+          resourcePath: fixturesDir
+        cache3.setFooter(importPath, '\n@a: 2;')
+
+        cache3.readFileSync(filePath)
+        expect(cache3.stats.misses).toBe 0
+        expect(cache3.stats.hits).toBe 1
