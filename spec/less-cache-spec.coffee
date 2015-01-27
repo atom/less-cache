@@ -245,6 +245,35 @@ describe "LessCache", ->
         expect(cache.stats.misses).toBe 1
         expect(cache.stats.hits).toBe 1
 
+      it "returns cached content across different cache instances", ->
+        filePath = join(fixturesDir, 'footer.less')
+        cache.setFooter(filePath, '\n@a: 2;')
+        cache.readFileSync(filePath)
+
+        cache2 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
+        cache2.setFooter(filePath, '\n@a: 2;')
+
+        css = cache2.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache2.stats.misses).toBe 0
+        expect(cache2.stats.hits).toBe 1
+
+        cache3 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
+        css = cache3.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 1;
+          }
+
+        """
+        expect(cache3.stats.misses).toBe 1
+        expect(cache3.stats.hits).toBe 0
+
     describe "when the footer is for a file that is imported", ->
       it "appends the footer to the imported file", ->
         filePath = join(fixturesDir, 'footer.less')
@@ -270,3 +299,33 @@ describe "LessCache", ->
         """
         expect(cache.stats.misses).toBe 1
         expect(cache.stats.hits).toBe 1
+
+      it "returns cached content across different cache instances", ->
+        filePath = join(fixturesDir, 'footer.less')
+        importPath = join(fixturesDir, 'a.less')
+        cache.setFooter(importPath, '\n@a: 2;')
+        cache.readFileSync(filePath)
+
+        cache2 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
+        cache2.setFooter(importPath, '\n@a: 2;')
+
+        css = cache2.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 2;
+          }
+
+        """
+        expect(cache2.stats.misses).toBe 0
+        expect(cache2.stats.hits).toBe 1
+
+        cache3 = new LessCache(cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths())
+        css = cache3.readFileSync(filePath)
+        expect(css).toBe """
+          body {
+            a: 1;
+          }
+
+        """
+        expect(cache3.stats.misses).toBe 1
+        expect(cache3.stats.hits).toBe 0
