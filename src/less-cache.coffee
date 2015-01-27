@@ -153,7 +153,6 @@ class LessCache
 
   parseLess: (filePath, less) ->
     css = null
-    less += @getFooter(filePath)
     options = filename: filePath, syncImport: true, paths: @importPaths
     Parser ?= require('less').Parser
     parser = new Parser(options)
