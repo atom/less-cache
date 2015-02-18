@@ -1,9 +1,9 @@
 crypto = require 'crypto'
-nodeFs = require 'less/lib/less/fs.js'
 {basename, dirname, extname, join, relative} = require 'path'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
+lessFs = null # Defer until it is actually used
 Parser = null # Defer until it is actually used
 walkdir = require('walkdir').sync
 
@@ -85,8 +85,9 @@ class LessCache
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
-    originalFsReadFileSync = nodeFs.readFileSync
-    nodeFs.readFileSync = (filePath, args...) =>
+    lessFs ?= require 'less/lib/less/fs.js'
+    originalFsReadFileSync = lessFs.readFileSync
+    lessFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
       filePath = @relativize(@resourcePath, filePath) if @resourcePath
       importedPaths.push({path: filePath, digest: @digestForContent(content)})
@@ -95,7 +96,7 @@ class LessCache
     try
       callback()
     finally
-      nodeFs.readFileSync = originalFsReadFileSync
+      lessFs.readFileSync = originalFsReadFileSync
 
     importedPaths
 
