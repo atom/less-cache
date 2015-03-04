@@ -4,7 +4,7 @@ crypto = require 'crypto'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 lessFs = null # Defer until it is actually used
-Parser = null # Defer until it is actually used
+less = null # Defer until it is actually used
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -85,7 +85,7 @@ class LessCache
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
-    lessFs ?= require 'less/lib/less/fs.js'
+    lessFs ?= require 'less/lib/less-node/fs.js'
     originalFsReadFileSync = lessFs.readFileSync
     lessFs.readFileSync = (filePath, args...) =>
       content = originalFsReadFileSync(filePath, args...)
@@ -147,17 +147,16 @@ class LessCache
     cachePath = @getCachePath(@importsCacheDir, filePath)
     @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
 
-  parseLess: (filePath, less) ->
+  parseLess: (filePath, lessInput) ->
     css = null
     options = filename: filePath, syncImport: true, paths: @importPaths
-    Parser ?= require('less').Parser
-    parser = new Parser(options)
+    less ?= require('less')
     imports = @observeImportedFilePaths =>
-      parser.parse less, (error, tree) =>
+      less.render lessInput, options, (error, output) =>
         if error?
           throw error
         else
-          css = tree.toCSS()
+          css = output.css
     {imports, css}
 
   # Read the Less file at the current path and return either the cached CSS or the newly

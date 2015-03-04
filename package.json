@@ -27,10 +27,10 @@
     }
   ],
   "dependencies": {
-    "less": "^1.7.5",
+    "fs-plus": "2.x",
+    "less": "^2.4.0",
     "underscore-plus": "1.x",
-    "walkdir": "0.0.7",
-    "fs-plus": "2.x"
+    "walkdir": "0.0.7"
   },
   "devDependencies": {
     "jasmine-focused": "1.x",
