@@ -218,3 +218,79 @@ describe "LessCache", ->
       spyOn(cache3, 'parseLess').andCallThrough()
       cache3.readFileSync(join(fixturesDir, 'imports.less'))
       expect(cache3.parseLess.callCount).toBe 0
+
+  describe "when syncCaches option is set to true", ->
+    it "writes the cache entry to the fallback cache when initially uncached", ->
+      fallback = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      cache = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'synced')
+        syncCaches: true
+        fallbackDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      cacheCss = cache.readFileSync(join(fixturesDir, 'a.less'))
+      expect(cache.stats.hits).toBe 0
+      expect(cache.stats.misses).toBe 1
+
+      fallbackCss = fallback.readFileSync(join(fixturesDir, 'a.less'))
+      expect(fallback.stats.hits).toBe 1
+      expect(fallback.stats.misses).toBe 0
+
+      expect(cacheCss).toBe fallbackCss
+
+    it "writes the cache entry to the fallback cache when read from the main cache", ->
+      cache = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'synced')
+        resourcePath: fixturesDir
+
+      fallback = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      cacheWithFallback = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'synced')
+        syncCaches: true
+        fallbackDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      # Prime main cache
+      cache.readFileSync(join(fixturesDir, 'a.less'))
+
+      # Read from main cache with write to fallback
+      cacheWithFallback.readFileSync(join(fixturesDir, 'a.less'))
+
+      # Read from fallback cache
+      fallback.readFileSync(join(fixturesDir, 'a.less'))
+
+      expect(fallback.stats.hits).toBe 1
+      expect(fallback.stats.misses).toBe 0
+
+    it "writes the cache entry to the main cache when read from the fallback cache", ->
+      cache = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'synced')
+        resourcePath: fixturesDir
+
+      fallback = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      cacheWithFallback = new LessCache
+        cacheDir: join(dirname(cache.getDirectory()), 'synced')
+        syncCaches: true
+        fallbackDir: join(dirname(cache.getDirectory()), 'fallback')
+        resourcePath: fixturesDir
+
+      # Prime fallback cache
+      fallback.readFileSync(join(fixturesDir, 'a.less'))
+
+      # Read from fallback with write to main cache
+      cacheWithFallback.readFileSync(join(fixturesDir, 'a.less'))
+
+      # Read from main cache
+      cache.readFileSync(join(fixturesDir, 'a.less'))
+
+      expect(cache.stats.hits).toBe 1
+      expect(cache.stats.misses).toBe 0
