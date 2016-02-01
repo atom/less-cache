@@ -24,7 +24,7 @@ class LessCache
   #
   #   * fallbackDir: A string path to a directory containing a readable cache to read
   #                  from an entry is not found in this cache (optional)
-  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir}={}) ->
+  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir, @syncCaches}={}) ->
     @importsCacheDir = @cacheDirectoryForImports(@importPaths)
     if @fallbackDir
       @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
@@ -131,6 +131,7 @@ class LessCache
       if @importsFallbackDir?
         try
           cacheEntry = @readJson(@getCachePath(@importsFallbackDir, filePath))
+          fallbackDirUsed = true
 
     return unless digest is cacheEntry?.digest
 
@@ -141,11 +142,20 @@ class LessCache
       catch error
         return
 
+    if @syncCaches
+      if fallbackDirUsed
+        @writeJson(@getCachePath(@importsCacheDir, filePath), cacheEntry)
+      else if @importsFallbackDir?
+        @writeJson(@getCachePath(@importsFallbackDir, filePath), cacheEntry)
+
     cacheEntry.css
 
   putCachedCss: (filePath, digest, css, imports) ->
-    cachePath = @getCachePath(@importsCacheDir, filePath)
-    @writeJson(cachePath, {digest, css, imports, version: cacheVersion})
+    cacheEntry = {digest, css, imports, version: cacheVersion}
+    @writeJson(@getCachePath(@importsCacheDir, filePath), cacheEntry)
+
+    if @syncCaches and @importsFallbackDir?
+      @writeJson(@getCachePath(@importsFallbackDir, filePath), cacheEntry)
 
   parseLess: (filePath, less) ->
     css = null
