@@ -27,7 +27,7 @@
     }
   ],
   "dependencies": {
-    "less": "^1.7.5",
+    "less": "^2.7.1",
     "underscore-plus": "1.x",
     "walkdir": "0.0.7",
     "fs-plus": "2.x"
