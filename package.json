@@ -29,7 +29,7 @@
   "dependencies": {
     "less": "^2.7.1",
     "underscore-plus": "1.x",
-    "walkdir": "0.0.7",
+    "walkdir": "0.0.11",
     "fs-plus": "2.x"
   },
   "devDependencies": {
