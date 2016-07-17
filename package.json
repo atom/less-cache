@@ -27,10 +27,10 @@
     }
   ],
   "dependencies": {
+    "fs-plus": "2.x",
     "less": "^2.7.1",
     "underscore-plus": "1.x",
-    "walkdir": "0.0.11",
-    "fs-plus": "2.x"
+    "walkdir": "0.0.11"
   },
   "devDependencies": {
     "fstream": "^1.0.10",
