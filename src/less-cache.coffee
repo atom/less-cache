@@ -4,7 +4,6 @@ crypto = require 'crypto'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 less = null # Defer until it is actually used
-lessFs = null # Defer until it is actually used
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -83,23 +82,6 @@ class LessCache
     @importedFiles = importedFiles
     @importPaths = importPaths
 
-  observeImportedFilePaths: (callback) ->
-    importedPaths = []
-    lessFs ?= require 'less/lib/less-node/fs.js'
-    originalFsReadFileSync = lessFs.readFileSync
-    lessFs.readFileSync = (filePath, args...) =>
-      content = originalFsReadFileSync(filePath, args...)
-      filePath = @relativize(@resourcePath, filePath) if @resourcePath
-      importedPaths.push({path: filePath, digest: @digestForContent(content)})
-      content
-
-    try
-      callback()
-    finally
-      lessFs.readFileSync = originalFsReadFileSync
-
-    importedPaths
-
   readJson: (filePath) -> JSON.parse(fs.readFileSync(filePath))
 
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
@@ -158,15 +140,32 @@ class LessCache
       @writeJson(@getCachePath(@importsFallbackDir, filePath), cacheEntry)
 
   parseLess: (filePath, contents) ->
-    css = null
-    options = filename: filePath, syncImport: true, paths: @importPaths
+    entryPath = filePath.replace(/[^\/\\]*$/, '')
+    options = {filename: filePath, syncImport: true, paths: @importPaths}
+    rootFileInfo = {
+      filename: filePath,
+      rootpath: '',
+      currentDirectory: entryPath,
+      entryPath: entryPath,
+      rootFilename: filePath
+    }
+
     less ?= require('less')
-    imports = @observeImportedFilePaths ->
-      less.render contents, options, (error, result) ->
-        if error?
-          throw error
-        else
-          {css} = result
+    context = new less.contexts.Parse(options)
+    importManager = new less.ImportManager(context, rootFileInfo)
+
+    css = null
+    parser = new less.Parser(context, importManager, rootFileInfo).parse contents, (err, rootNode) ->
+      if err?
+        throw error
+      else
+        {css} = new less.ParseTree(rootNode, importManager).toCSS(options)
+
+    imports = []
+    for filename, content of importManager.contents
+      if filename isnt filePath
+        imports.push({path: filename, digest: @digestForContent(content)})
+
     {imports, css}
 
   # Read the Less file at the current path and return either the cached CSS or the newly
