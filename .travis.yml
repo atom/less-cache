@@ -5,5 +5,4 @@ notifications:
     on_success: never
     on_failure: change
 
-node_js:
-  - 0.10
+node_js: 6
