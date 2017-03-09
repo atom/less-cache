@@ -2,6 +2,7 @@ fs = require 'fs'
 {dirname, join} = require 'path'
 
 tmp = require 'tmp'
+temp = require('temp').track()
 fstream = require 'fstream'
 
 LessCache = require '../src/less-cache'
@@ -294,3 +295,67 @@ describe "LessCache", ->
 
       expect(cache.stats.hits).toBe 1
       expect(cache.stats.misses).toBe 0
+
+  describe "when providing a resource path and less sources by relative file path", ->
+    it "reads from the provided sources first, and falls back to reading from disk if a valid source isn't available", ->
+      cacheDir = temp.mkdirSync()
+      cache1 = new LessCache
+        cacheDir: cacheDir
+        importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
+        resourcePath: fixturesDir
+        lessSourcesByRelativeFilePath: {
+          'imports.less': """
+            @import "a";
+            @import "b";
+            @import "c";
+            @import "d";
+
+            some-selector {
+              prop-1: @a;
+              prop-2: @b;
+              prop-3: @c;
+              prop-4: @d;
+            }
+          """
+        }
+
+      expect(cache1.readFileSync(join(fixturesDir, 'imports.less'))).toBe("""
+        some-selector {
+          prop-1: 1;
+          prop-2: 2;
+          prop-3: 3;
+          prop-4: 4;
+        }\n
+        """)
+
+      cache2 = new LessCache
+        cacheDir: cacheDir
+        importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
+        resourcePath: fixturesDir
+        lessSourcesByRelativeFilePath: {
+          'imports.less': """
+            @import "a";
+            @import "b";
+            @import "c";
+            @import "d";
+
+            some-selector {
+              prop-1: @a;
+              prop-2: @b;
+              prop-3: @c;
+              prop-4: @d;
+            }
+          """,
+          'imports-1/c.less': """
+            @c: "changed";
+          """
+        }
+
+      expect(cache2.readFileSync(join(fixturesDir, 'imports.less'))).toBe("""
+        some-selector {
+          prop-1: 1;
+          prop-2: 2;
+          prop-3: "changed";
+          prop-4: 4;
+        }\n
+        """)

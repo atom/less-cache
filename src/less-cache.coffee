@@ -24,7 +24,8 @@ class LessCache
   #
   #   * fallbackDir: A string path to a directory containing a readable cache to read
   #                  from an entry is not found in this cache (optional)
-  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir, @syncCaches}={}) ->
+  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir, @syncCaches, @lessSourcesByRelativeFilePath}={}) ->
+    @lessSourcesByRelativeFilePath ?= {}
     @importsCacheDir = @cacheDirectoryForImports(@importPaths)
     if @fallbackDir
       @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
@@ -88,9 +89,9 @@ class LessCache
     lessFs ?= require 'less/lib/less-node/fs.js'
     originalFsReadFileSync = lessFs.readFileSync
     lessFs.readFileSync = (filePath, args...) =>
-      content = originalFsReadFileSync(filePath, args...)
-      filePath = @relativize(@resourcePath, filePath) if @resourcePath
-      importedPaths.push({path: filePath, digest: @digestForContent(content)})
+      relativeFilePath = @relativize(@resourcePath, filePath) if @resourcePath
+      content = @lessSourcesByRelativeFilePath[relativeFilePath] ? originalFsReadFileSync(filePath, args...)
+      importedPaths.push({path: relativeFilePath ? filePath, digest: @digestForContent(content)})
       content
 
     try
@@ -104,8 +105,17 @@ class LessCache
 
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
 
-  digestForPath: (filePath) ->
-    @digestForContent(fs.readFileSync(filePath))
+  digestForPath: (relativeFilePath) ->
+    lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
+    unless lessSource?
+      absoluteFilePath = null
+      if @resourcePath and not fs.isAbsolute(relativeFilePath)
+        absoluteFilePath = join(@resourcePath, relativeFilePath)
+      else
+        absoluteFilePath = relativeFilePath
+      lessSource = fs.readFileSync(absoluteFilePath)
+
+    @digestForContent(lessSource)
 
   digestForContent: (content) ->
     crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
@@ -137,7 +147,6 @@ class LessCache
 
     for {path, digest} in cacheEntry.imports
       try
-        path = join(@resourcePath, path) if @resourcePath and not fs.isAbsolute(path)
         return if @digestForPath(path) isnt digest
       catch error
         return
@@ -176,8 +185,13 @@ class LessCache
   # filePath: A string path to a Less file.
   #
   # Returns the compiled CSS for the given path.
-  readFileSync: (filePath) ->
-    @cssForFile(filePath, fs.readFileSync(filePath, 'utf8'))
+  readFileSync: (absoluteFilePath) ->
+    fileContents = null
+    if @resourcePath and fs.isAbsolute(absoluteFilePath)
+      relativeFilePath = @relativize(@resourcePath, absoluteFilePath)
+      fileContents = @lessSourcesByRelativeFilePath[relativeFilePath]
+
+    @cssForFile(absoluteFilePath, fileContents ? fs.readFileSync(absoluteFilePath, 'utf8'))
 
   # Return either cached CSS or the newly
   # compiled CSS from `lessContent`. This method caches the compiled CSS after it is generated. This cached
