@@ -20,6 +20,7 @@ describe('LessCache', function () {
       importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')],
       cacheDir: join(fixturesDir, 'cache')
     })
+    cache.load()
   })
 
   describe('::cssForFile(filePath)', function () {
@@ -178,6 +179,7 @@ describe('LessCache', function () {
 
     it('reuses cached CSS across cache instances', function () {
       const cache2 = new LessCache({cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths()})
+      cache2.load()
       sinon.spy(cache2, 'parseLess')
       cache2.readFileSync(join(fixturesDir, 'imports.less'))
       expect(cache2.parseLess.callCount).to.be(0)
@@ -189,6 +191,7 @@ describe('LessCache', function () {
 
     it('relativizes cache paths based on the configured resource path', function () {
       const cache2 = new LessCache({cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths(), resourcePath: fixturesDir})
+      cache2.load()
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).to.be(false)
       cache2.readFileSync(join(fixturesDir, 'imports.less'))
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).to.be(true)
@@ -201,6 +204,7 @@ describe('LessCache', function () {
         fallbackDir: cache.getDirectory(),
         resourcePath: fixturesDir
       })
+      cache2.load()
       cache2.readFileSync(join(fixturesDir, 'imports.less'))
 
       const cache3 = new LessCache({
@@ -209,6 +213,7 @@ describe('LessCache', function () {
         fallbackDir: cache2.getDirectory(),
         resourcePath: fixturesDir
       })
+      cache3.load()
 
       sinon.spy(cache3, 'parseLess')
       cache3.readFileSync(join(fixturesDir, 'imports.less'))
@@ -222,6 +227,7 @@ describe('LessCache', function () {
         cacheDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      fallback.load()
 
       cache = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'synced'),
@@ -229,6 +235,7 @@ describe('LessCache', function () {
         fallbackDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      cache.load()
 
       const cacheCss = cache.readFileSync(join(fixturesDir, 'a.less'))
       expect(cache.stats.hits).to.be(0)
@@ -246,11 +253,13 @@ describe('LessCache', function () {
         cacheDir: join(dirname(cache.getDirectory()), 'synced'),
         resourcePath: fixturesDir
       })
+      cache.load()
 
       const fallback = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      fallback.load()
 
       const cacheWithFallback = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'synced'),
@@ -258,6 +267,7 @@ describe('LessCache', function () {
         fallbackDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      cacheWithFallback.load()
 
       // Prime main cache
       cache.readFileSync(join(fixturesDir, 'a.less'))
@@ -277,11 +287,13 @@ describe('LessCache', function () {
         cacheDir: join(dirname(cache.getDirectory()), 'synced'),
         resourcePath: fixturesDir
       })
+      cache.load()
 
       const fallback = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      fallback.load()
 
       const cacheWithFallback = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'synced'),
@@ -289,6 +301,7 @@ describe('LessCache', function () {
         fallbackDir: join(dirname(cache.getDirectory()), 'fallback'),
         resourcePath: fixturesDir
       })
+      cacheWithFallback.load()
 
       // Prime fallback cache
       fallback.readFileSync(join(fixturesDir, 'a.less'))
@@ -327,6 +340,7 @@ describe('LessCache', function () {
           `
         }
       })
+      cache1.load()
 
       expect(cache1.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
         some-selector {
@@ -357,6 +371,7 @@ describe('LessCache', function () {
           `,
           'imports-1/c.less': '@c: "changed";\n'
         }})
+      cache2.load()
 
       expect(cache2.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
         some-selector {

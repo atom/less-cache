@@ -36,9 +36,11 @@ class LessCache {
     if (this.fallbackDir) {
       this.importsFallbackDir = join(this.fallbackDir, basename(this.importsCacheDir))
     }
+  }
 
+  load () {
     try {
-      ({importedFiles: this.importedFiles} = this.readJson(join(this.importsCacheDir, 'imports.json')))
+      this.importedFiles = this.readJson(join(this.importsCacheDir, 'imports.json')).importedFiles
     } catch (error) {}
 
     this.setImportPaths(this.importPaths)
