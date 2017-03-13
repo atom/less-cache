@@ -5,7 +5,7 @@ const _ = require('underscore-plus')
 const fs = require('fs-plus')
 let less = null // Defer until it is actually used
 let lessFs = null // Defer until it is actually used
-const walkdir = require('walkdir').sync
+const walkdir = require('walkdir')
 
 const cacheVersion = 1
 
@@ -57,31 +57,57 @@ class LessCache {
 
   getImportPaths () { return _.clone(this.importPaths) }
 
-  getImportedFiles (importPaths) {
-    const importedFiles = []
-    for (let importPath of importPaths) {
+  async getImportedFiles (importPaths) {
+    let importedFiles = []
+    for (let i = 0; i < importPaths.length; i++) {
       try {
-        walkdir(importPath, {no_return: true}, (filePath, stat) => {
-          if (!stat.isFile()) { return }
-          if (this.resourcePath) { filePath = this.relativize(this.resourcePath, filePath) }
-          return importedFiles.push(filePath)
-        }
-        )
+        const filePaths = await this.getFilePathsAtImportPath(importPaths[i])
+        importedFiles = importedFiles.concat(filePaths)
       } catch (error) {
         continue
       }
     }
-
     return importedFiles
   }
 
-  async setImportPaths () {
-    this.importPathsPromise = this._setImportPaths.apply(this, arguments)
+  getFilePathsAtImportPath (importPath) {
+    return new Promise((resolve, reject) => {
+      const filePaths = []
+      const emitter = walkdir(importPath, (filePath, stat) => {
+        if (stat.isFile()) {
+          if (this.resourcePath) {
+            filePath = this.relativize(this.resourcePath, filePath)
+          }
+          filePaths.push(filePath)
+        }
+      })
+      const disposeEmitter = () => {
+        emitter.removeAllListeners('error')
+        emitter.removeAllListeners('end')
+      }
+      emitter.on('error', (error) => {
+        disposeEmitter()
+        reject(error)
+      })
+      emitter.on('end', () => {
+        disposeEmitter()
+        resolve(filePaths)
+      })
+    })
+  }
+
+  async setImportPaths (importPaths, firstLoad) {
+    if (this.importPathsPromise) {
+      this.importPathsPromise = this.importPathsPromise.then(() => this._setImportPaths(importPaths, firstLoad))
+    } else {
+      this.importPathsPromise = this._setImportPaths(importPaths, firstLoad)
+    }
+
     return this.importPathsPromise
   }
 
   async _setImportPaths (importPaths = [], firstLoad = false) {
-    const importedFiles = this.getImportedFiles(importPaths)
+    const importedFiles = await this.getImportedFiles(importPaths)
     const pathsChanged = !_.isEqual(this.importPaths, importPaths)
     const filesChanged = !_.isEqual(this.importedFiles, importedFiles)
     if (pathsChanged) {
