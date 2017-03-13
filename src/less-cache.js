@@ -270,14 +270,18 @@ class LessCache {
   // filePath: A string path to a Less file.
   //
   // Returns the compiled CSS for the given path.
-  readFileSync (absoluteFilePath) {
+  async readFileSync (absoluteFilePath) {
     let fileContents = null
     if (this.resourcePath && fs.isAbsolute(absoluteFilePath)) {
       const relativeFilePath = this.relativize(this.resourcePath, absoluteFilePath)
       fileContents = this.lessSourcesByRelativeFilePath[relativeFilePath]
     }
 
-    return this.cssForFile(absoluteFilePath, fileContents != null ? fileContents : fs.readFileSync(absoluteFilePath, 'utf8'))
+    if (fileContents == null) {
+      fileContents = await readFile(absoluteFilePath)
+    }
+
+    return this.cssForFile(absoluteFilePath, fileContents)
   }
 
   // Return either cached CSS or the newly
