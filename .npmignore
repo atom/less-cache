@@ -1,4 +1,4 @@
-*.coffee
+src
 spec
 .pairs
 .travis.yml
