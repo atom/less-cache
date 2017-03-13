@@ -5,7 +5,6 @@ const fs = require('fs-plus')
 const {dirname, join} = require('path')
 
 const temp = require('temp').track()
-const fstream = require('fstream')
 const dedent = require('dedent')
 
 const LessCache = require('../src/less-cache')

@@ -2,7 +2,7 @@
   "name": "less-cache",
   "version": "1.0.0",
   "description": "Less compile cache",
-  "main": "./lib/less-cache",
+  "main": "./lib/less-cache.js",
   "scripts": {
     "test": "mocha test/**/*.test.js --compilers js:babel-register",
     "prepublish": "rimraf lib && babel src -d lib"
@@ -38,12 +38,9 @@
     "babel-register": "^6.23.0",
     "dedent": "^0.7.0",
     "expect.js": "^0.3.1",
-    "fs-plus": "^3.0.0",
-    "fstream": "^1.0.10",
     "mocha": "^3.2.0",
     "rimraf": "^2.6.1",
     "sinon": "^1.17.7",
-    "temp": "^0.8.3",
-    "tmp": "0.0.28"
+    "temp": "^0.8.3"
   }
 }
