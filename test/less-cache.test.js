@@ -49,11 +49,11 @@ describe('LessCache', function () {
     })
   })
 
-  describe('::readFileSync(filePath)', function () {
+  describe('::readFile(filePath)', function () {
     let [css] = []
 
     beforeEach(async function () {
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(cache.stats.hits).to.be(0)
       expect(cache.stats.misses).to.be(1)
     })
@@ -71,7 +71,7 @@ describe('LessCache', function () {
 
     it('returns the cached CSS for a given Less file path', async function () {
       sinon.spy(cache, 'parseLess')
-      expect(await cache.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
+      expect(await cache.readFile(join(fixturesDir, 'imports.less'))).to.be(dedent`
         body {
           a: 1;
           b: 2;
@@ -86,7 +86,7 @@ describe('LessCache', function () {
 
     it('reflects changes to the file being read', async function () {
       fs.writeFileSync(join(fixturesDir, 'imports.less'), 'body { display: block; }')
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           display: block;
@@ -96,7 +96,7 @@ describe('LessCache', function () {
 
     it('reflects changes to files imported by the file being read', async function () {
       fs.writeFileSync(join(fixturesDir, 'b.less'), '@b: 20;')
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           a: 1;
@@ -110,7 +110,7 @@ describe('LessCache', function () {
     it('reflects changes to files on the import path', async function () {
       fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 40;')
       cache.setImportPaths(cache.getImportPaths())
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           a: 1;
@@ -122,7 +122,7 @@ describe('LessCache', function () {
 
       fs.unlinkSync(join(fixturesDir, 'imports-1', 'c.less'))
       cache.setImportPaths(cache.getImportPaths())
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           a: 1;
@@ -134,7 +134,7 @@ describe('LessCache', function () {
 
       fs.writeFileSync(join(fixturesDir, 'imports-1', 'd.less'), '@d: 400;')
       cache.setImportPaths(cache.getImportPaths())
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           a: 1;
@@ -148,11 +148,11 @@ describe('LessCache', function () {
     it('reflect changes to the import paths array', async function () {
       sinon.spy(cache, 'parseLess')
       cache.setImportPaths([join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
-      await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(cache.parseLess.callCount).to.be(0)
 
       cache.setImportPaths([join(fixturesDir, 'imports-2'), join(fixturesDir, 'imports-1'), join(fixturesDir, 'import-does-not-exist')])
-      css = await cache.readFileSync(join(fixturesDir, 'imports.less'))
+      css = await cache.readFile(join(fixturesDir, 'imports.less'))
       expect(css).to.be(dedent`
         body {
           a: 1;
@@ -165,7 +165,7 @@ describe('LessCache', function () {
 
       cache.parseLess.reset()
       cache.setImportPaths([join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')])
-      expect(await cache.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
+      expect(await cache.readFile(join(fixturesDir, 'imports.less'))).to.be(dedent`
         body {
           a: 1;
           b: 2;
@@ -180,14 +180,14 @@ describe('LessCache', function () {
       const cache2 = new LessCache({cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths()})
       cache2.load()
       sinon.spy(cache2, 'parseLess')
-      await cache2.readFileSync(join(fixturesDir, 'imports.less'))
+      await cache2.readFile(join(fixturesDir, 'imports.less'))
       expect(cache2.parseLess.callCount).to.be(0)
     })
 
     it('throws compile errors', async function () {
       let threwError = false
       try {
-        await cache.readFileSync(join(fixturesDir, 'invalid.less'))
+        await cache.readFile(join(fixturesDir, 'invalid.less'))
       } catch (e) {
         threwError = true
       }
@@ -197,7 +197,7 @@ describe('LessCache', function () {
     it('throws file not found errors', async function () {
       let threwError = false
       try {
-        await cache.readFileSync(join(fixturesDir, 'does-not-exist.less'))
+        await cache.readFile(join(fixturesDir, 'does-not-exist.less'))
       } catch (e) {
         threwError = true
       }
@@ -208,7 +208,7 @@ describe('LessCache', function () {
       const cache2 = new LessCache({cacheDir: cache.getDirectory(), importPaths: cache.getImportPaths(), resourcePath: fixturesDir})
       await cache2.load()
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).to.be(false)
-      await cache2.readFileSync(join(fixturesDir, 'imports.less'))
+      await cache2.readFile(join(fixturesDir, 'imports.less'))
       expect(fs.existsSync(join(cache2.importsCacheDir, 'content', 'imports.json'))).to.be(true)
     })
 
@@ -220,7 +220,7 @@ describe('LessCache', function () {
         resourcePath: fixturesDir
       })
       cache2.load()
-      await cache2.readFileSync(join(fixturesDir, 'imports.less'))
+      await cache2.readFile(join(fixturesDir, 'imports.less'))
 
       const cache3 = new LessCache({
         cacheDir: join(dirname(cache.getDirectory()), 'cache3'),
@@ -231,7 +231,7 @@ describe('LessCache', function () {
       cache3.load()
 
       sinon.spy(cache3, 'parseLess')
-      await cache3.readFileSync(join(fixturesDir, 'imports.less'))
+      await cache3.readFile(join(fixturesDir, 'imports.less'))
       expect(cache3.parseLess.callCount).to.be(0)
     })
   })
@@ -252,11 +252,11 @@ describe('LessCache', function () {
       })
       cache.load()
 
-      const cacheCss = await cache.readFileSync(join(fixturesDir, 'a.less'))
+      const cacheCss = await cache.readFile(join(fixturesDir, 'a.less'))
       expect(cache.stats.hits).to.be(0)
       expect(cache.stats.misses).to.be(1)
 
-      const fallbackCss = await fallback.readFileSync(join(fixturesDir, 'a.less'))
+      const fallbackCss = await fallback.readFile(join(fixturesDir, 'a.less'))
       expect(fallback.stats.hits).to.be(1)
       expect(fallback.stats.misses).to.be(0)
 
@@ -285,13 +285,13 @@ describe('LessCache', function () {
       cacheWithFallback.load()
 
       // Prime main cache
-      await cache.readFileSync(join(fixturesDir, 'a.less'))
+      await cache.readFile(join(fixturesDir, 'a.less'))
 
       // Read from main cache with write to fallback
-      await cacheWithFallback.readFileSync(join(fixturesDir, 'a.less'))
+      await cacheWithFallback.readFile(join(fixturesDir, 'a.less'))
 
       // Read from fallback cache
-      await fallback.readFileSync(join(fixturesDir, 'a.less'))
+      await fallback.readFile(join(fixturesDir, 'a.less'))
 
       expect(fallback.stats.hits).to.be(1)
       expect(fallback.stats.misses).to.be(0)
@@ -319,13 +319,13 @@ describe('LessCache', function () {
       cacheWithFallback.load()
 
       // Prime fallback cache
-      await fallback.readFileSync(join(fixturesDir, 'a.less'))
+      await fallback.readFile(join(fixturesDir, 'a.less'))
 
       // Read from fallback with write to main cache
-      await cacheWithFallback.readFileSync(join(fixturesDir, 'a.less'))
+      await cacheWithFallback.readFile(join(fixturesDir, 'a.less'))
 
       // Read from main cache
-      await cache.readFileSync(join(fixturesDir, 'a.less'))
+      await cache.readFile(join(fixturesDir, 'a.less'))
 
       expect(cache.stats.hits).to.be(1)
       expect(cache.stats.misses).to.be(0)
@@ -357,7 +357,7 @@ describe('LessCache', function () {
       })
       cache1.load()
 
-      expect(await cache1.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
+      expect(await cache1.readFile(join(fixturesDir, 'imports.less'))).to.be(dedent`
         some-selector {
           prop-1: 1;
           prop-2: 2;
@@ -388,7 +388,7 @@ describe('LessCache', function () {
         }})
       cache2.load()
 
-      expect(await cache2.readFileSync(join(fixturesDir, 'imports.less'))).to.be(dedent`
+      expect(await cache2.readFile(join(fixturesDir, 'imports.less'))).to.be(dedent`
         some-selector {
           prop-1: 1;
           prop-2: 2;

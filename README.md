@@ -8,9 +8,17 @@ Caches the compiled `.less` files as `.css`.
 npm install less-cache
 ```
 
-```coffeescript
-LessCache = require 'less-cache'
+```javascript
+const LessCache = require('less-cache')
+const cache = new LessCache({cacheDir: '/tmp/less-cache'})
 
-cache = new LessCache(cacheDir: '/tmp/less-cache')
-css = cache.readFileSync('/Users/me/apps/static/styles.less')
+// This method returns a {Promise}, but you can avoid waiting on it as it will
+// be waited upon automatically when calling `readFile` or `cssForFile` later.
+cache.load()
+const css1 = await cache.readFile('/Users/me/apps/static/styles.less')
+
+// Similarly to `load`, this method will return a {Promise} and subsequent calls
+// to `readFile` or `cssForFile` will automatically wait on it.
+cache.setImportPaths(['path-1', 'path-2'])
+const css2 = await cache.readFile('/Users/me/apps/static/styles.less')
 ```

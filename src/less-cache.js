@@ -36,13 +36,13 @@ class LessCache {
     if (this.fallbackDir) {
       this.importsFallbackDir = join(this.fallbackDir, basename(this.importsCacheDir))
     }
-  }
-
-  load () {
     this.stats = {
       hits: 0,
       misses: 0
     }
+  }
+
+  load () {
     return this.setImportPaths(this.importPaths, true)
   }
 
@@ -270,7 +270,7 @@ class LessCache {
   // filePath: A string path to a Less file.
   //
   // Returns the compiled CSS for the given path.
-  async readFileSync (absoluteFilePath) {
+  async readFile (absoluteFilePath) {
     let fileContents = null
     if (this.resourcePath && fs.isAbsolute(absoluteFilePath)) {
       const relativeFilePath = this.relativize(this.resourcePath, absoluteFilePath)
