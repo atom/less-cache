@@ -117,11 +117,11 @@ class LessCache {
       }
     } else if (filesChanged && !firstLoad) {
       try {
-        fs.removeSync(this.importsCacheDir)
+        await deletePath(this.importsCacheDir)
       } catch (error) {
         if (error && error.code === 'ENOENT') {
           try {
-            fs.removeSync(this.importsCacheDir) // Retry once
+            await deletePath(this.importsCacheDir) // Retry once
           } catch (error) {}
         }
       }
@@ -325,6 +325,18 @@ function readFile (filePath) {
 function writeFile (filePath, contents) {
   return new Promise((resolve, reject) => {
     fs.writeFile(filePath, contents, (error) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+function deletePath (path) {
+  return new Promise((resolve, reject) => {
+    fs.remove(path, (error) => {
       if (error) {
         reject(error)
       } else {
