@@ -38,12 +38,12 @@ class LessCache {
     }
   }
 
-  async load () {
+  load () {
     this.stats = {
       hits: 0,
       misses: 0
     }
-    await this.setImportPaths(this.importPaths, true)
+    return this.setImportPaths(this.importPaths, true)
   }
 
   cacheDirectoryForImports (importPaths = []) {
@@ -139,7 +139,9 @@ class LessCache {
     lessFs.readFileSync = (filePath, ...args) => {
       let relativeFilePath
       if (this.resourcePath) { relativeFilePath = this.relativize(this.resourcePath, filePath) }
-      const content = this.lessSourcesByRelativeFilePath[relativeFilePath] != null ? this.lessSourcesByRelativeFilePath[relativeFilePath] : originalFsReadFileSync(filePath, ...args)
+      const content = this.lessSourcesByRelativeFilePath[relativeFilePath] != null ?
+        this.lessSourcesByRelativeFilePath[relativeFilePath] :
+        originalFsReadFileSync(filePath, ...args)
       importedPaths.push({path: relativeFilePath != null ? relativeFilePath : filePath, digest: this.digestForContent(content)})
       return content
     }
@@ -161,11 +163,7 @@ class LessCache {
     return writeFile(filePath, JSON.stringify(object))
   }
 
-  readJsonSync (filePath) { return JSON.parse(fs.readFileSync(filePath)) }
-
-  writeJsonSync (filePath, object) { return fs.writeFileSync(filePath, JSON.stringify(object)) }
-
-  digestForPath (relativeFilePath) {
+  async digestForPath (relativeFilePath) {
     let lessSource = this.lessSourcesByRelativeFilePath[relativeFilePath]
     if (lessSource == null) {
       let absoluteFilePath = null
@@ -174,7 +172,7 @@ class LessCache {
       } else {
         absoluteFilePath = relativeFilePath
       }
-      lessSource = fs.readFileSync(absoluteFilePath)
+      lessSource = await readFile(absoluteFilePath)
     }
 
     return this.digestForContent(lessSource)
@@ -201,14 +199,14 @@ class LessCache {
     return join(directory, 'content', directoryPath, cacheFile)
   }
 
-  getCachedCss (filePath, digest) {
+  async getCachedCss (filePath, digest) {
     let cacheEntry, fallbackDirUsed, path
     try {
-      cacheEntry = this.readJsonSync(this.getCachePath(this.importsCacheDir, filePath))
+      cacheEntry = await this.readJSON(this.getCachePath(this.importsCacheDir, filePath))
     } catch (error) {
       if (this.importsFallbackDir != null) {
         try {
-          cacheEntry = this.readJsonSync(this.getCachePath(this.importsFallbackDir, filePath))
+          cacheEntry = await this.readJSON(this.getCachePath(this.importsFallbackDir, filePath))
           fallbackDirUsed = true
         } catch (error) {}
       }
@@ -218,9 +216,10 @@ class LessCache {
       return
     }
 
-    for ({path, digest} of cacheEntry.imports) {
+    for (const {path, digest} of cacheEntry.imports) {
       try {
-        if (this.digestForPath(path) !== digest) {
+        const digestForPath = await this.digestForPath(path)
+        if (digestForPath !== digest) {
           return
         }
       } catch (error) {
@@ -230,21 +229,21 @@ class LessCache {
 
     if (this.syncCaches) {
       if (fallbackDirUsed) {
-        this.writeJsonSync(this.getCachePath(this.importsCacheDir, filePath), cacheEntry)
+        await this.writeJSON(this.getCachePath(this.importsCacheDir, filePath), cacheEntry)
       } else if (this.importsFallbackDir != null) {
-        this.writeJsonSync(this.getCachePath(this.importsFallbackDir, filePath), cacheEntry)
+        await this.writeJSON(this.getCachePath(this.importsFallbackDir, filePath), cacheEntry)
       }
     }
 
     return cacheEntry.css
   }
 
-  putCachedCss (filePath, digest, css, imports) {
+  async putCachedCss (filePath, digest, css, imports) {
     const cacheEntry = {digest, css, imports, version: cacheVersion}
-    this.writeJsonSync(this.getCachePath(this.importsCacheDir, filePath), cacheEntry)
+    await this.writeJSON(this.getCachePath(this.importsCacheDir, filePath), cacheEntry)
 
     if (this.syncCaches && (this.importsFallbackDir != null)) {
-      return this.writeJsonSync(this.getCachePath(this.importsFallbackDir, filePath), cacheEntry)
+      await this.writeJSON(this.getCachePath(this.importsFallbackDir, filePath), cacheEntry)
     }
   }
 
@@ -271,8 +270,7 @@ class LessCache {
   // filePath: A string path to a Less file.
   //
   // Returns the compiled CSS for the given path.
-  async readFileSync (absoluteFilePath) {
-    await this.importPathsPromise
+  readFileSync (absoluteFilePath) {
     let fileContents = null
     if (this.resourcePath && fs.isAbsolute(absoluteFilePath)) {
       const relativeFilePath = this.relativize(this.resourcePath, absoluteFilePath)
@@ -292,9 +290,10 @@ class LessCache {
   // Returns the compiled CSS for the given path and lessContent
   async cssForFile (filePath, lessContent) {
     await this.importPathsPromise
+
     let imports
     const digest = this.digestForContent(lessContent)
-    let css = this.getCachedCss(filePath, digest)
+    let css = await this.getCachedCss(filePath, digest)
     if (css != null) {
       this.stats.hits++
       return css
@@ -302,7 +301,7 @@ class LessCache {
 
     this.stats.misses++
     ({imports, css} = this.parseLess(filePath, lessContent))
-    this.putCachedCss(filePath, digest, css, imports)
+    await this.putCachedCss(filePath, digest, css, imports)
     return css
   }
 }
