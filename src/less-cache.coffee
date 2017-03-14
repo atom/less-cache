@@ -11,6 +11,9 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
+  @digestForContent: (content) ->
+    crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
+
   # Create a new Less cache with the given options.
   #
   # options - An object with following keys
@@ -43,7 +46,7 @@ class LessCache
     if @resourcePath
       importPaths = importPaths.map (importPath) =>
         @relativize(@resourcePath, importPath)
-    join(@cacheDir, @digestForContent(importPaths.join('\n')))
+    join(@cacheDir, LessCache.digestForContent(importPaths.join('\n')))
 
   getDirectory: -> @cacheDir
 
@@ -98,7 +101,7 @@ class LessCache
         digest = lessSource.digest
       else
         content = originalFsReadFileSync(filePath, args...)
-        digest = @digestForContent(content)
+        digest = LessCache.digestForContent(content)
 
       importedPaths.push({path: relativeFilePath ? filePath, digest: digest})
       content
@@ -124,10 +127,7 @@ class LessCache
         absoluteFilePath = join(@resourcePath, relativeFilePath)
       else
         absoluteFilePath = relativeFilePath
-      @digestForContent(fs.readFileSync(absoluteFilePath))
-
-  digestForContent: (content) ->
-    crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
+      LessCache.digestForContent(fs.readFileSync(absoluteFilePath))
 
   relativize: (from, to) ->
     relativePath = relative(from, to)
@@ -140,7 +140,7 @@ class LessCache
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
     directoryPath = @relativize(@resourcePath, directoryPath) if @resourcePath
-    directoryPath = @digestForContent(directoryPath) if directoryPath
+    directoryPath = LessCache.digestForContent(directoryPath) if directoryPath
     join(directory, 'content', directoryPath, cacheFile)
 
   getCachedCss: (filePath, digest) ->
@@ -214,7 +214,7 @@ class LessCache
   #
   # Returns the compiled CSS for the given path and lessContent
   cssForFile: (filePath, lessContent, digest) ->
-    digest ?= @digestForContent(lessContent)
+    digest ?= LessCache.digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     if css?
       @stats.hits++
