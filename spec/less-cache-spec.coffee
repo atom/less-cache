@@ -359,3 +359,24 @@ describe "LessCache", ->
           prop-4: 4;
         }\n
         """)
+
+  describe "when providing a resource path and import files by relative file path", ->
+    it "reads from the provided file paths first, and falls back to reading from disk if a valid file path isn't available", ->
+      cacheDir = temp.mkdirSync()
+      cache1 = new LessCache
+        cacheDir: cacheDir
+        importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
+        resourcePath: fixturesDir
+        importedFilePathsByRelativeImportPath: {
+          'imports-1': [
+            'imports-1/in-memory-1.less',
+            'imports-1/in-memory-2.less'
+          ]
+        }
+
+      expect(cache1.getImportedFiles(cache1.importPaths)).toEqual([
+        'imports-1/in-memory-1.less',
+        'imports-1/in-memory-2.less',
+        'imports-2/c.less',
+        'imports-2/d.less'
+      ])

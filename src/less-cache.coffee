@@ -24,8 +24,14 @@ class LessCache
   #
   #   * fallbackDir: A string path to a directory containing a readable cache to read
   #                  from an entry is not found in this cache (optional)
-  constructor: ({@cacheDir, @importPaths, @resourcePath, @fallbackDir, @syncCaches, @lessSourcesByRelativeFilePath}={}) ->
+  constructor: (params={}) ->
+    {
+      @cacheDir, @importPaths, @resourcePath, @fallbackDir, @syncCaches,
+      @lessSourcesByRelativeFilePath, @importedFilePathsByRelativeImportPath
+    } = params
+
     @lessSourcesByRelativeFilePath ?= {}
+    @importedFilePathsByRelativeImportPath ?= {}
     @importsCacheDir = @cacheDirectoryForImports(@importPaths)
     if @fallbackDir
       @importsFallbackDir = join(@fallbackDir, basename(@importsCacheDir))
@@ -51,14 +57,26 @@ class LessCache
 
   getImportedFiles: (importPaths) ->
     importedFiles = []
-    for importPath in importPaths
-      try
-        walkdir importPath, no_return: true, (filePath, stat) =>
-          return unless stat.isFile()
-          filePath = @relativize(@resourcePath, filePath) if @resourcePath
-          importedFiles.push(filePath)
-      catch error
-        continue
+    for absoluteImportPath in importPaths
+      importPath = null
+      if @resourcePath?
+        importPath = @relativize(@resourcePath, absoluteImportPath)
+      else
+        importPath = absoluteImportPath
+
+      importedFilePaths = @importedFilePathsByRelativeImportPath[importPath]
+      if importedFilePaths?
+        importedFiles = importedFiles.concat(importedFilePaths)
+      else
+        try
+          walkdir absoluteImportPath, no_return: true, (filePath, stat) =>
+            return unless stat.isFile()
+            if @resourcePath?
+              importedFiles.push(@relativize(@resourcePath, filePath))
+            else
+              importedFiles.push(filePath)
+        catch error
+          continue
 
     importedFiles
 
