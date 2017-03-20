@@ -11,6 +11,9 @@ cacheVersion = 1
 
 module.exports =
 class LessCache
+  @digestForContent: (content) ->
+    crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
+
   # Create a new Less cache with the given options.
   #
   # options - An object with following keys
@@ -49,7 +52,7 @@ class LessCache
     if @resourcePath
       importPaths = importPaths.map (importPath) =>
         @relativize(@resourcePath, importPath)
-    join(@cacheDir, @digestForContent(importPaths.join('\n')))
+    join(@cacheDir, LessCache.digestForContent(importPaths.join('\n')))
 
   getDirectory: -> @cacheDir
 
@@ -108,8 +111,17 @@ class LessCache
     originalFsReadFileSync = lessFs.readFileSync
     lessFs.readFileSync = (filePath, args...) =>
       relativeFilePath = @relativize(@resourcePath, filePath) if @resourcePath
-      content = @lessSourcesByRelativeFilePath[relativeFilePath] ? originalFsReadFileSync(filePath, args...)
-      importedPaths.push({path: relativeFilePath ? filePath, digest: @digestForContent(content)})
+      lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
+      content = null
+      digest = null
+      if lessSource?
+        content = lessSource.content
+        digest = lessSource.digest
+      else
+        content = originalFsReadFileSync(filePath, args...)
+        digest = LessCache.digestForContent(content)
+
+      importedPaths.push({path: relativeFilePath ? filePath, digest: digest})
       content
 
     try
@@ -125,18 +137,15 @@ class LessCache
 
   digestForPath: (relativeFilePath) ->
     lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
-    unless lessSource?
+    if lessSource?
+      lessSource.digest
+    else
       absoluteFilePath = null
       if @resourcePath and not fs.isAbsolute(relativeFilePath)
         absoluteFilePath = join(@resourcePath, relativeFilePath)
       else
         absoluteFilePath = relativeFilePath
-      lessSource = fs.readFileSync(absoluteFilePath)
-
-    @digestForContent(lessSource)
-
-  digestForContent: (content) ->
-    crypto.createHash('SHA1').update(content, 'utf8').digest('hex')
+      LessCache.digestForContent(fs.readFileSync(absoluteFilePath))
 
   relativize: (from, to) ->
     relativePath = relative(from, to)
@@ -149,7 +158,7 @@ class LessCache
     cacheFile = "#{basename(filePath, extname(filePath))}.json"
     directoryPath = dirname(filePath)
     directoryPath = @relativize(@resourcePath, directoryPath) if @resourcePath
-    directoryPath = @digestForContent(directoryPath) if directoryPath
+    directoryPath = LessCache.digestForContent(directoryPath) if directoryPath
     join(directory, 'content', directoryPath, cacheFile)
 
   getCachedCss: (filePath, digest) ->
@@ -204,12 +213,15 @@ class LessCache
   #
   # Returns the compiled CSS for the given path.
   readFileSync: (absoluteFilePath) ->
-    fileContents = null
+    lessSource = null
     if @resourcePath and fs.isAbsolute(absoluteFilePath)
       relativeFilePath = @relativize(@resourcePath, absoluteFilePath)
-      fileContents = @lessSourcesByRelativeFilePath[relativeFilePath]
+      lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
 
-    @cssForFile(absoluteFilePath, fileContents ? fs.readFileSync(absoluteFilePath, 'utf8'))
+    if lessSource?
+      @cssForFile(absoluteFilePath, lessSource.content, lessSource.digest)
+    else
+      @cssForFile(absoluteFilePath, fs.readFileSync(absoluteFilePath, 'utf8'))
 
   # Return either cached CSS or the newly
   # compiled CSS from `lessContent`. This method caches the compiled CSS after it is generated. This cached
@@ -219,8 +231,8 @@ class LessCache
   # lessContent: The contents of the filePath
   #
   # Returns the compiled CSS for the given path and lessContent
-  cssForFile: (filePath, lessContent) ->
-    digest = @digestForContent(lessContent)
+  cssForFile: (filePath, lessContent, digest) ->
+    digest ?= LessCache.digestForContent(lessContent)
     css = @getCachedCss(filePath, digest)
     if css?
       @stats.hits++
