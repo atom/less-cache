@@ -304,19 +304,22 @@ describe "LessCache", ->
         importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
         resourcePath: fixturesDir
         lessSourcesByRelativeFilePath: {
-          'imports.less': """
-            @import "a";
-            @import "b";
-            @import "c";
-            @import "d";
+          'imports.less': {
+            content: """
+              @import "a";
+              @import "b";
+              @import "c";
+              @import "d";
 
-            some-selector {
-              prop-1: @a;
-              prop-2: @b;
-              prop-3: @c;
-              prop-4: @d;
-            }
-          """
+              some-selector {
+                prop-1: @a;
+                prop-2: @b;
+                prop-3: @c;
+                prop-4: @d;
+              }
+            """,
+            digest: 'digest-1'
+          }
         }
 
       expect(cache1.readFileSync(join(fixturesDir, 'imports.less'))).toBe("""
@@ -333,25 +336,63 @@ describe "LessCache", ->
         importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
         resourcePath: fixturesDir
         lessSourcesByRelativeFilePath: {
-          'imports.less': """
-            @import "a";
-            @import "b";
-            @import "c";
-            @import "d";
+          'imports.less': {
+            content: """
+              @import "a";
+              @import "b";
+              @import "c";
+              @import "d";
 
-            some-selector {
-              prop-1: @a;
-              prop-2: @b;
-              prop-3: @c;
-              prop-4: @d;
-            }
-          """,
-          'imports-1/c.less': """
-            @c: "changed";
-          """
+              some-selector {
+                prop-1: @a;
+                prop-2: @b;
+                prop-3: @c;
+                prop-4: @d;
+              }
+            """,
+            digest: 'digest-2'
+          },
+          'imports-1/c.less': {
+            content: """
+              @c: "changed";
+            """,
+            digest: 'digest-3'
+          }
         }
 
       expect(cache2.readFileSync(join(fixturesDir, 'imports.less'))).toBe("""
+        some-selector {
+          prop-1: 1;
+          prop-2: 2;
+          prop-3: "changed";
+          prop-4: 4;
+        }\n
+        """)
+
+      cache3 = new LessCache
+        cacheDir: cacheDir
+        importPaths: [join(fixturesDir, 'imports-1'), join(fixturesDir, 'imports-2')]
+        resourcePath: fixturesDir
+        lessSourcesByRelativeFilePath: {
+          'imports.less': {
+            content: """
+              @import "c";
+
+              foo {
+                bar: @c;
+              }
+            """,
+            digest: 'digest-2'
+          },
+          'imports-1/c.less': {
+            content: """
+              @c: "changed again";
+            """,
+            digest: 'digest-3'
+          }
+        }
+
+      expect(cache3.readFileSync(join(fixturesDir, 'imports.less'))).toBe("""
         some-selector {
           prop-1: 1;
           prop-2: 2;
