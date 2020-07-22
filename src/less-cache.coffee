@@ -191,7 +191,8 @@ class LessCache
       if err?
         throw error
       else
-        {css} = new less.ParseTree(rootNode, importManager).toCSS(options)
+        parserTree = new less.ParseTree(rootNode, importManager)
+        {css} = parserTree.toCSS(options)
 
     imports = []
     for filename, content of importManager.contents
