@@ -3,8 +3,8 @@ crypto = require 'crypto'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-less = null # Defer until it is actually used
-lessFs = null # Defer until it is actually used
+less = require('less') # Defer until it is actually used
+lessFs = less.fs # Defer until it is actually used
 walkdir = require('walkdir').sync
 
 cacheVersion = 1
@@ -107,12 +107,6 @@ class LessCache
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
-    # load or assign less and lessFs
-    if (less == null)
-      less = require 'less'
-      lessFs = less.fs
-    else if (lessFs == null)
-      lessFs = less.fs
     originalFsReadFileSync = lessFs.readFileSync
     lessFs.readFileSync = (filePath, args...) =>
       relativeFilePath = @relativize(@resourcePath, filePath) if @resourcePath
@@ -201,12 +195,6 @@ class LessCache
   parseLess: (filePath, contents) ->
     css = null
     options = filename: filePath, syncImport: true, paths: @importPaths
-    # load or assign less and lessFs
-    if (less == null)
-      less = require 'less'
-      lessFs = less.fs
-    else if (lessFs == null)
-      lessFs = less.fs
     imports = @observeImportedFilePaths ->
       less.render contents, options, (error, result) ->
         if error?
