@@ -196,6 +196,8 @@ class LessCache
       if filename isnt filePath
         imports.push({path: filename, digest: LessCache.digestForContent(content)})
 
+    {imports, css}
+
   # Read the Less file at the current path and return either the cached CSS or the newly
   # compiled CSS. This method caches the compiled CSS after it is generated. This cached
   # CSS will be returned as long as the Less file and any of its imports are unchanged.
