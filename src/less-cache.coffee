@@ -169,7 +169,12 @@ class LessCache
 
   parseLess: (filePath, contents) ->
     entryPath = filePath.replace(/[^\/\\]*$/, '')
-    options = {filename: filePath, syncImport: true, paths: @importPaths}
+
+    # https://github.com/less/less.js/blob/ef4baa5bb27b932623eb9afede99b3e2aaccea20/packages/less/src/less/contexts.js#L18
+    options = {syncImport: true, paths: @importPaths}
+    context = new less.contexts.Parse(options)
+
+    # https://github.com/less/less.js/blob/ef4baa5bb27b932623eb9afede99b3e2aaccea20/packages/less/src/less/import-manager.js#L9
     rootFileInfo = {
       filename: filePath,
       rootpath: '',
@@ -177,7 +182,6 @@ class LessCache
       entryPath: entryPath,
       rootFilename: filePath
     }
-    context = new less.contexts.Parse(options)
     importManager = new less.ImportManager(less, context, rootFileInfo)
 
     css = null
