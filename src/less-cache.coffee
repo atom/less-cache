@@ -178,7 +178,7 @@ class LessCache
       rootFilename: filePath
     }
     context = new less.contexts.Parse(options)
-    importManager = new less.ImportManager(context, rootFileInfo)
+    importManager = new less.ImportManager(less, context, rootFileInfo)
 
     css = null
     parser = new less.Parser(context, importManager, rootFileInfo).parse contents, (err, rootNode) ->
