@@ -105,31 +105,6 @@ class LessCache
     @importedFiles = importedFiles
     @importPaths = importPaths
 
-  observeImportedFilePaths: (callback) ->
-    importedPaths = []
-    originalFsReadFileSync = lessFs.readFileSync
-    lessFs.readFileSync = (filePath, args...) =>
-      relativeFilePath = @relativize(@resourcePath, filePath) if @resourcePath
-      lessSource = @lessSourcesByRelativeFilePath[relativeFilePath]
-      content = null
-      digest = null
-      if lessSource?
-        content = lessSource.content
-        digest = lessSource.digest
-      else
-        content = originalFsReadFileSync(filePath, args...)
-        digest = LessCache.digestForContent(content)
-
-      importedPaths.push({path: relativeFilePath ? filePath, digest: digest})
-      content
-
-    try
-      callback()
-    finally
-      lessFs.readFileSync = originalFsReadFileSync
-
-    importedPaths
-
   readJson: (filePath) -> JSON.parse(fs.readFileSync(filePath))
 
   writeJson: (filePath, object) -> fs.writeFileSync(filePath, JSON.stringify(object))
