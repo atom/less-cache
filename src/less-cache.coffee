@@ -185,7 +185,9 @@ class LessCache
     importManager = new less.ImportManager(less, context, rootFileInfo)
 
     css = null
-    parser = new less.Parser(context, importManager, rootFileInfo).parse contents, (err, rootNode) ->
+    parser = new less.Parser(context, importManager, rootFileInfo)
+
+    parser.parse contents, (err, rootNode) ->
       if err?
         throw error
       else
