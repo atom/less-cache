@@ -107,7 +107,12 @@ class LessCache
 
   observeImportedFilePaths: (callback) ->
     importedPaths = []
-    lessFs ?= require 'less/lib/less-node/fs.js'
+    # load or assign less and lessFs
+    if (less == null)
+      less = require 'less'
+      lessFs = less.fs
+    else if (lessFs == null)
+      lessFs = less.fs
     originalFsReadFileSync = lessFs.readFileSync
     lessFs.readFileSync = (filePath, args...) =>
       relativeFilePath = @relativize(@resourcePath, filePath) if @resourcePath
@@ -196,7 +201,12 @@ class LessCache
   parseLess: (filePath, contents) ->
     css = null
     options = filename: filePath, syncImport: true, paths: @importPaths
-    less ?= require('less')
+    # load or assign less and lessFs
+    if (less == null)
+      less = require 'less'
+      lessFs = less.fs
+    else if (lessFs == null)
+      lessFs = less.fs
     imports = @observeImportedFilePaths ->
       less.render contents, options, (error, result) ->
         if error?
