@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "coffeescript": "^1.12.7",
-    "fstream": "^1.0.10",
+    "fstream": "^1.0.12",
     "jasmine-focused": "^1",
     "temp": "^0.8.3",
     "tmp": "0.0.28",
