@@ -168,15 +168,29 @@ class LessCache
       @writeJson(@getCachePath(@importsFallbackDir, filePath), cacheEntry)
 
   parseLess: (filePath, contents) ->
+    entryPath = filePath.replace(/[^\/\\]*$/, '')
+    options = {filename: filePath, syncImport: true, paths: @importPaths}
+    rootFileInfo = {
+      filename: filePath,
+      rootpath: '',
+      currentDirectory: entryPath,
+      entryPath: entryPath,
+      rootFilename: filePath
+    }
+    context = new less.contexts.Parse(options)
+    importManager = new less.ImportManager(context, rootFileInfo)
+
     css = null
-    options = filename: filePath, syncImport: true, paths: @importPaths
-    imports = @observeImportedFilePaths ->
-      less.render contents, options, (error, result) ->
-        if error?
-          throw error
-        else
-          {css} = result
-    {imports, css}
+    parser = new less.Parser(context, importManager, rootFileInfo).parse contents, (err, rootNode) ->
+      if err?
+        throw error
+      else
+        {css} = new less.ParseTree(rootNode, importManager).toCSS(options)
+
+    imports = []
+    for filename, content of importManager.contents
+      if filename isnt filePath
+        imports.push({path: filename, digest: LessCache.digestForContent(content)})
 
   # Read the Less file at the current path and return either the cached CSS or the newly
   # compiled CSS. This method caches the compiled CSS after it is generated. This cached
