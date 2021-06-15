@@ -1,5 +1,4 @@
-# Less Cache [![Build Status](https://travis-ci.org/atom/less-cache.svg?branch=master)](https://travis-ci.org/atom/less-cache)
-
+# Less Cache [![CI](https://github.com/atom/less-cache/actions/workflows/ci.yml/badge.svg)](https://github.com/atom/less-cache/actions/workflows/ci.yml)
 Caches the compiled `.less` files as `.css`.
 
 ## Using
